@@ -138,13 +138,13 @@ public class TextEncryptionView extends HorizontalLayout {
 
         //Copy button functionality
         copyButton.addClickListener(e -> {
+
+
         });
 
         //Decrypt button functionality
         decryptButton.addClickListener(e -> {
-            // OnClick navigate to decryption view
             UI.getCurrent().navigate("text-decryption");
-
         });
 
 
