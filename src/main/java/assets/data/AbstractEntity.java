@@ -1,4 +1,4 @@
-package othmanalibrahim.data;
+package assets.data;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

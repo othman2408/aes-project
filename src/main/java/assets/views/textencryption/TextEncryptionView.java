@@ -1,10 +1,9 @@
-package othmanalibrahim.views.textencryption;
+package assets.views.textencryption;
 
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -14,7 +13,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import othmanalibrahim.views.MainLayout;
+import assets.views.MainLayout;
 
 @PageTitle("Text Encryption")
 @Route(value = "text-encryption", layout = MainLayout.class)
@@ -22,26 +21,20 @@ import othmanalibrahim.views.MainLayout;
 public class TextEncryptionView extends HorizontalLayout {
 
     public TextEncryptionView() {
-
-
         // Create UI
 
-        //Place the mainContainer in the center of the screen
+        // Place the mainContainer in the center of the screen
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         setWidthFull();
         setHeightFull();
 
-
-
-        //Main Container
+        // Main Container
         VerticalLayout mainContainer = new VerticalLayout();
-        mainContainer.setAlignItems(Alignment.CENTER); // Align items to the center
-        mainContainer.setWidth("50%"); // Set width to 50%
-        mainContainer.setHeight("70%"); // Set height to 50%
-//        mainContainer.getStyle().set("background-color", "gray"); // Set blue background color
-        mainContainer.getStyle().set("gap", "2rem"); // Add padding for gap
-
+        mainContainer.setAlignItems(Alignment.CENTER);
+        mainContainer.setWidth("50%");
+        mainContainer.setHeight("70%");
+        mainContainer.getStyle().set("gap", "2rem");
 
         // Title Container
         Div titlesContainer = new Div();
@@ -53,17 +46,22 @@ public class TextEncryptionView extends HorizontalLayout {
         // Action Container
         Div actionContainer = new Div();
         actionContainer.getStyle()
-                .set("width", "50%").set("height", "30%")
-                .set("display", "flex").set("flex-direction", "column")
-                .set("align-items", "center").set("justify-content", "center")
+                .set("width", "50%")
+                .set("height", "30%")
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("align-items", "center")
+                .set("justify-content", "center")
                 .set("gap", ".5rem");
 
-        TextField textField = new TextField();
-        textField.getStyle().set("width", "100%");
 
-        textField.setPlaceholder("Enter a text to encrypt");
-        textField.setClearButtonVisible(true);
-        textField.focus();
+        TextArea plainTextArea = new TextArea();
+        plainTextArea.getStyle().set("width", "100%");
+        plainTextArea.setPlaceholder("Enter a text to encrypt");
+        plainTextArea.setLabel("Plain Text");
+
+        plainTextArea.setClearButtonVisible(true);
+        plainTextArea.focus();
 
         Button encryptButton = new Button("Encrypt");
         encryptButton.getStyle().set("width", "100%").set("cursor", "pointer");
@@ -74,18 +72,17 @@ public class TextEncryptionView extends HorizontalLayout {
         });
 
         // Enter key action
-        textField.addKeyPressListener(Key.ENTER, e -> {
+        plainTextArea.addKeyPressListener(Key.ENTER, e -> {
             Notification.show("Text encrypted");
         });
 
-
         // Add components to the action container
-        actionContainer.add(textField, encryptButton);
+        actionContainer.add(plainTextArea, encryptButton);
 
         // Result container
         Div resultContainer = new Div();
         resultContainer.getStyle()
-                .set("flex", "1") // Let it grow and take available height
+                .set("flex", "1")
                 .set("width", "80%")
                 .set("display", "flex")
                 .set("flex-direction", "column")
@@ -93,8 +90,7 @@ public class TextEncryptionView extends HorizontalLayout {
 
         TextArea result = new TextArea();
         result.setReadOnly(true);
-        result.setLabel("Encrypted text");
-
+        result.setLabel("Encrypted Text");
 
         // Make the TextArea grow and take full available height
         result.getStyle().set("flex", "1");
@@ -107,8 +103,6 @@ public class TextEncryptionView extends HorizontalLayout {
 
         // Add components to the layout
         add(mainContainer);
-
-
     }
 
 }

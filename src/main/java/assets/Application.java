@@ -1,4 +1,4 @@
-package othmanalibrahim;
+package assets;
 
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.sql.init.SqlDataSourceScriptDatabaseInitializer;
 import org.springframework.boot.autoconfigure.sql.init.SqlInitializationProperties;
 import org.springframework.context.annotation.Bean;
-import othmanalibrahim.data.SamplePersonRepository;
+import assets.data.SamplePersonRepository;
 
 /**
  * The entry point of the Spring Boot application.

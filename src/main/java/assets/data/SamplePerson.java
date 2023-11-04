@@ -1,4 +1,4 @@
-package othmanalibrahim.data;
+package assets.data;
 
 import jakarta.persistence.Entity;
 import jakarta.validation.constraints.Email;

@@ -1,4 +1,4 @@
-package othmanalibrahim.data;
+package assets.data;
 
 
 import org.springframework.data.jpa.repository.JpaRepository;

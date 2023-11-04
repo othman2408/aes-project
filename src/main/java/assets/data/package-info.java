@@ -1,4 +1,4 @@
 @NonNullApi
-package othmanalibrahim.services;
+package assets.data;
 
 import org.springframework.lang.NonNullApi;

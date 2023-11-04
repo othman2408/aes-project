@@ -1,4 +1,4 @@
-package othmanalibrahim.views.fileencryption;
+package assets.views.fileencryption;
 
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.dependency.Uses;
@@ -8,7 +8,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import othmanalibrahim.views.MainLayout;
+import assets.views.MainLayout;
 
 @PageTitle("File Encryption")
 @Route(value = "file-encryption", layout = MainLayout.class)

@@ -1,4 +1,4 @@
-package othmanalibrahim.views;
+package assets.views;
 
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
@@ -12,11 +12,11 @@ import com.vaadin.flow.component.sidenav.SideNavItem;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIcon;
-import othmanalibrahim.views.about.AboutView;
-import othmanalibrahim.views.filedecryption.FileDecryptionView;
-import othmanalibrahim.views.fileencryption.FileEncryptionView;
-import othmanalibrahim.views.textdecryption.TextDecryptionView;
-import othmanalibrahim.views.textencryption.TextEncryptionView;
+import assets.views.about.AboutView;
+import assets.views.filedecryption.FileDecryptionView;
+import assets.views.fileencryption.FileEncryptionView;
+import assets.views.textdecryption.TextDecryptionView;
+import assets.views.textencryption.TextEncryptionView;
 
 /**
  * The main view is a top-level placeholder for other views.
