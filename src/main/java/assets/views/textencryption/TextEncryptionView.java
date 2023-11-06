@@ -41,7 +41,7 @@ public class TextEncryptionView extends HorizontalLayout {
         // Title Container
         Div titlesContainer = new Div();
         H1 title = new H1("Text Encryption");
-        H3 subtitle = new H3("Enter a text to encrypt");
+        H3 subtitle = new H3("Upload a file to encrypt");
         subtitle.getStyle().set("font-weight", "normal").set("font-size", "1.3rem").set("margin-top", ".5rem");
         subtitle.getStyle().set("text-align", "center");
         titlesContainer.add(title, subtitle);
