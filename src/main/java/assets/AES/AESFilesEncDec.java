@@ -103,12 +103,12 @@ public class AESFilesEncDec {
         IvParameterSpec iv = generateIv();
 
         //File encryption
-        encryptFile("AES/CBC/PKCS5Padding", key, iv, new File("src/main/java/assets/AESTests/test.txt"),
-                new File("src/main/java/assets/AESTests/othman_encrypted.txt"));
+//        encryptFile("AES/CBC/PKCS5Padding", key, iv, new File("src/main/java/assets/AESTests/ModConn.vb"),
+//                new File("src/main/java/assets/AESTests/ModConn_encrypted.vb"));
 
         //File decryption
         decryptFile("AES/CBC/PKCS5Padding", key, iv,
-                new File("src/main/java/assets/AESTests/othman_encrypted.txt"),
-                new File("src/main/java/assets/AESTests/decryptedFile.txt"));
+                new File("src/main/java/assets/AESTests/ModConn_encrypted.vb"),
+                new File("src/main/java/assets/AESTests/ModConn_decrypted.vb"));
     }
 }
