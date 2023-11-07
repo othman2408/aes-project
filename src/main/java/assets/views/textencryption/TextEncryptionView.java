@@ -1,6 +1,6 @@
 package assets.views.textencryption;
 
-import assets.AES.AESTextEncDec;
+import assets.AES.AESText;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -19,18 +19,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import assets.views.MainLayout;
 
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import java.util.Base64;
-
-import static assets.AES.AESFilesEncDec.generateIv;
-
 @PageTitle("Text Encryption")
 @Route(value = "text-encryption", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 public class TextEncryptionView extends HorizontalLayout {
-
-    AESTextEncDec aes = new AESTextEncDec();
 
 
     public TextEncryptionView() {
@@ -142,22 +134,22 @@ public class TextEncryptionView extends HorizontalLayout {
 
         // Result text area
         TextArea result = new TextArea();
+        //<theme-editor-local-classname>
+        result.addClassName("text-encryption-view-text-area-1");
         result.setLabel("Encrypted Text");
         result.getStyle().set("min-height", "8rem");
 
         // Button action
         encryptButton.addClickListener(e -> {
             try {
-                String plainText = plainTextArea.getValue();
-                String password = passwordField.getValue();
-                byte[] salt = AESTextEncDec.generateSalt();
-                SecretKey key = AESTextEncDec.getKeyFromPassword(password, salt);
+                // ENCRYPT TEXT
+                AESText aesText = new AESText("AES/CBC/PKCS5Padding");
+                byte[] salt = aesText.generateSalt();
+                aesText.generateKey(passwordField.getValue(), salt);
 
-                //IV
-                IvParameterSpec iv = generateIv();
-                // Perform encryption
-                String encryptedText = AESTextEncDec.encrypt("AES/CBC/PKCS5Padding", plainText, key, iv);
-                result.setValue(encryptedText);
+                String cipherText = aesText.encrypt(plainTextArea.getValue());
+                result.setValue(cipherText);
+
 
 
                 // SHOW NOTIFICATION
