@@ -1,5 +1,6 @@
 package assets.views.textencryption;
 
+import assets.AES.AESTextEncDec;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -7,19 +8,30 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import assets.views.MainLayout;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import java.util.Base64;
+
+import static assets.AES.AESFilesEncDec.generateIv;
+
 @PageTitle("Text Encryption")
 @Route(value = "text-encryption", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 public class TextEncryptionView extends HorizontalLayout {
+
+    AESTextEncDec aes = new AESTextEncDec();
+
 
     public TextEncryptionView() {
 
@@ -35,8 +47,7 @@ public class TextEncryptionView extends HorizontalLayout {
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
-        mainContainer.setHeight("70%");
-        mainContainer.getStyle().set("gap", "2rem");
+        mainContainer.getStyle().set("padding", "0");
 
         // Title Container
         Div titlesContainer = new Div();
@@ -55,7 +66,7 @@ public class TextEncryptionView extends HorizontalLayout {
                 .set("flex-direction", "column")
                 .set("align-items", "center")
                 .set("justify-content", "center")
-                .set("padding", "3rem 0rem 1rem 0rem")
+                .set("padding", "3rem 0rem 0rem 0rem")
                 .set("gap", ".5rem");
 
         // Plain text input
@@ -69,6 +80,17 @@ public class TextEncryptionView extends HorizontalLayout {
         //Key Size & Encryption mode options
         Div optionsContainer = new Div();
         optionsContainer.getStyle()
+                .set("width", "100%")
+                .set("display", "flex")
+                .set("flex-direction", "column");
+
+        // Password input
+        PasswordField passwordField = new PasswordField();
+        passwordField.setLabel("Secret Key");
+        passwordField.setHelperText("Enter your secret key");
+
+        Div modeKeyContainer = new Div();
+        modeKeyContainer.getStyle()
                 .set("display", "flex")
                 .set("width", "100%")
                 .set("flex-direction", "row")
@@ -92,17 +114,15 @@ public class TextEncryptionView extends HorizontalLayout {
         encryptionMode.setLabel("Encryption Mode");
         encryptionMode.setHelperText("Select the encryption mode");
 
+        // Add components to the modeKeyContainer
+        modeKeyContainer.add(keySize, encryptionMode);
+
         // Add components to the options container
-        optionsContainer.add(keySize, encryptionMode);
+        optionsContainer.add(passwordField, modeKeyContainer);
 
         // Encrypt button
         Button encryptButton = new Button("Encrypt");
         encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%").set("cursor", "pointer");
-
-        // Button action
-        encryptButton.addClickListener(e -> {
-            Notification.show("Text encrypted");
-        });
 
         // Enter key action
         plainTextArea.addKeyPressListener(Key.ENTER, e -> {
@@ -118,12 +138,38 @@ public class TextEncryptionView extends HorizontalLayout {
                 .set("flex", "1")
                 .set("width", "80%")
                 .set("display", "flex")
-                .set("flex-direction", "column")
-                .set("gap", ".5rem");
+                .set("flex-direction", "column");
 
         // Result text area
         TextArea result = new TextArea();
         result.setLabel("Encrypted Text");
+        result.getStyle().set("min-height", "8rem");
+
+        // Button action
+        encryptButton.addClickListener(e -> {
+            try {
+                String plainText = plainTextArea.getValue();
+                String password = passwordField.getValue();
+                byte[] salt = AESTextEncDec.generateSalt();
+                SecretKey key = AESTextEncDec.getKeyFromPassword(password, salt);
+
+                //IV
+                IvParameterSpec iv = generateIv();
+                // Perform encryption
+                String encryptedText = AESTextEncDec.encrypt("AES/CBC/PKCS5Padding", plainText, key, iv);
+                result.setValue(encryptedText);
+
+
+                // SHOW NOTIFICATION
+                Notification notification = new Notification(
+                        "Text encrypted", 3000,
+                        Notification.Position.TOP_CENTER);
+                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.open();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        });
 
         // Add copy & decrypt button
         HorizontalLayout buttonsContainer = new HorizontalLayout();
