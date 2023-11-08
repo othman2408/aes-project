@@ -1,5 +1,7 @@
 package assets.views.textdecryption;
 
+import assets.AES.AESText;
+import assets.AES.AESTextDecryption;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -134,15 +136,18 @@ public class TextDecryptionView extends HorizontalLayout {
         // Button action
         decryptButton.addClickListener(e -> {
             try {
+                // Decryption
+                AESTextDecryption aesTextDecryption = new AESTextDecryption();
+                String decryptedText = aesTextDecryption.decrypt(encryptedTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
+                result.setValue(decryptedText);
 
-                // SHOW NOTIFICATION
-                Notification notification = new Notification(
-                        "Text decrypted", 3000,
-                        Notification.Position.TOP_CENTER);
+                // Notification
+                Notification notification = new Notification("Text decrypted", 3000);
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.open();
+
             } catch (Exception exception) {
-                exception.printStackTrace();
+                exception.getMessage();
             }
         });
 

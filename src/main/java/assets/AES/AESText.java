@@ -11,6 +11,7 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
+import java.util.Scanner;
 
 public class AESText {
     private final String algorithm;
@@ -67,7 +68,7 @@ public class AESText {
             String decryptedCipherText = aes.decrypt(cipherText);
             System.out.println("Decrypted Message: " + decryptedCipherText);
         } catch (Exception e) {
-            e.printStackTrace();
+            e.getMessage();
         }
     }
 }

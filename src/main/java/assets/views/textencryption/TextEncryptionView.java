@@ -1,6 +1,7 @@
 package assets.views.textencryption;
 
 import assets.AES.AESText;
+import assets.AES.AESTextEncryption;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -143,12 +144,10 @@ public class TextEncryptionView extends HorizontalLayout {
         encryptButton.addClickListener(e -> {
             try {
                 // ENCRYPT TEXT
-                AESText aesText = new AESText("AES/CBC/PKCS5Padding");
-                byte[] salt = aesText.generateSalt();
-                aesText.generateKey(passwordField.getValue(), salt);
+                AESTextEncryption aesText = new AESTextEncryption();
+                String encryptedText = aesText.encrypt(plainTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
+                result.setValue(encryptedText);
 
-                String cipherText = aesText.encrypt(plainTextArea.getValue());
-                result.setValue(cipherText);
 
 
 
