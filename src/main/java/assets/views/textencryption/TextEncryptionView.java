@@ -162,34 +162,12 @@ public class TextEncryptionView extends HorizontalLayout {
             }
         });
 
-        // Add copy & decrypt button
-        HorizontalLayout buttonsContainer = new HorizontalLayout();
-        buttonsContainer.setJustifyContentMode(JustifyContentMode.CENTER);
-        buttonsContainer.getStyle().set("gap", ".5rem");
-        Button copyButton = new Button("Copy");
-        copyButton.getStyle().set("cursor", "pointer");
-        Button decryptButton = new Button("Decrypt");
-        decryptButton.getStyle().set("cursor", "pointer");
-        buttonsContainer.add(copyButton, decryptButton);
-        result.setSuffixComponent(buttonsContainer);
-
-        //Copy button functionality
-        copyButton.addClickListener(e -> {
-
-
-        });
-
-        //Decrypt button functionality
-        decryptButton.addClickListener(e -> {
-            UI.getCurrent().navigate("text-decryption");
-        });
-
 
         // Make the TextArea grow and take full available height
         result.getStyle().set("flex", "1");
 
         // Add components to the result container
-        resultContainer.add(result, buttonsContainer);
+        resultContainer.add(result);
 
         // Add all containers to the main container
         mainContainer.add(titlesContainer, actionContainer, resultContainer);
