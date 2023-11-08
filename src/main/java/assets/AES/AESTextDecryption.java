@@ -6,9 +6,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.SecureRandom;
 import java.security.spec.KeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
 
@@ -26,14 +24,17 @@ public class AESTextDecryption {
 
         // Decode the combined IV and encrypted data
         byte[] combined = Base64.getDecoder().decode(encryptedText);
-        byte[] ivBytes = Arrays.copyOfRange(combined, 0, 16);
-        byte[] encryptedBytes = Arrays.copyOfRange(combined, 16, combined.length);
+        byte[] ivBytes = new byte[16];
+        System.arraycopy(combined, 0, ivBytes, 0, 16);
+        byte[] encryptedBytes = new byte[combined.length - 16];
+        System.arraycopy(combined, 16, encryptedBytes, 0, encryptedBytes.length);
 
         // Derive the key from the password
         SecretKey secretKey = deriveKey(password, ivBytes, keySize);
 
-        // Initialize the Cipher for decryption
-        Cipher cipher = Cipher.getInstance("AES/" + encryptionMode + "/PKCS5Padding");
+        // Initialize the Cipher for decryption with the chosen encryption mode
+        String transformation = "AES/" + encryptionMode + "/PKCS5Padding";
+        Cipher cipher = Cipher.getInstance(transformation);
         cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(ivBytes));
 
         // Decrypt and return the plaintext
@@ -43,11 +44,10 @@ public class AESTextDecryption {
 
     private static SecretKey deriveKey(String password, byte[] ivBytes, int keySize) throws Exception {
         KeySpec keySpec = new PBEKeySpec(password.toCharArray(), ivBytes, 65536, keySize);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         byte[] rawKey = factory.generateSecret(keySpec).getEncoded();
         return new SecretKeySpec(rawKey, "AES");
     }
-
 
     public static void main(String[] args) {
         try {
@@ -74,8 +74,4 @@ public class AESTextDecryption {
             e.printStackTrace();
         }
     }
-
-
-
-
 }

@@ -12,16 +12,8 @@ import java.util.Base64;
 import java.util.Scanner;
 
 public class AESTextEncryption {
-    public static String encrypt(String plainText, String password, int keySize, String encryptionMode) throws Exception {
-        // Validate key size
-        if (keySize != 128 && keySize != 192 && keySize != 256) {
-            throw new IllegalArgumentException("Invalid key size. Please choose 128, 192, or 256 bits.");
-        }
-
-        // Validate encryption mode
-        if (!encryptionMode.equalsIgnoreCase("CBC") && !encryptionMode.equalsIgnoreCase("ECB")) {
-            throw new IllegalArgumentException("Invalid encryption mode. Please choose CBC or ECB.");
-        }
+    public static String encrypt(String plainText, String password, int keySize, String encryptionMode)
+            throws Exception {
 
         // Generate a random IV (Initialization Vector)
         byte[] ivBytes = new byte[16];
@@ -31,8 +23,9 @@ public class AESTextEncryption {
         // Derive a key from the password
         SecretKey secretKey = deriveKey(password, ivBytes, keySize);
 
-        // Initialize the Cipher for encryption
-        Cipher cipher = Cipher.getInstance("AES/" + encryptionMode + "/PKCS5Padding");
+        // Initialize the Cipher for encryption with the chosen encryption mode
+        String transformation = "AES/" + encryptionMode + "/PKCS5Padding";
+        Cipher cipher = Cipher.getInstance(transformation);
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(ivBytes));
 
         // Encrypt the plaintext
@@ -48,11 +41,10 @@ public class AESTextEncryption {
 
     private static SecretKey deriveKey(String password, byte[] ivBytes, int keySize) throws Exception {
         KeySpec keySpec = new PBEKeySpec(password.toCharArray(), ivBytes, 65536, keySize);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         byte[] rawKey = factory.generateSecret(keySpec).getEncoded();
         return new SecretKeySpec(rawKey, "AES");
     }
-
 
     public static void main(String[] args) {
         try {
@@ -75,10 +67,10 @@ public class AESTextEncryption {
             System.out.println("Encrypted Text: " + encryptedText);
 
             scanner.close();
+        } catch (IllegalArgumentException e) {
+            System.err.println(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Encryption failed: " + e.getMessage());
         }
     }
-
-
 }
