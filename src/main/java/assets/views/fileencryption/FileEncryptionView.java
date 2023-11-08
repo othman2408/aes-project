@@ -1,5 +1,6 @@
 package assets.views.fileencryption;
 
+import assets.AES.AESFilesEncDec;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -12,6 +13,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
+import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
@@ -42,8 +44,8 @@ public class FileEncryptionView extends HorizontalLayout {
 
         // Title Container
         Div titlesContainer = new Div();
-        H1 title = new H1("Text Encryption");
-        H3 subtitle = new H3("Enter a text to encrypt");
+        H1 title = new H1("File Encryption");
+        H3 subtitle = new H3("Upload a file to encrypt it");
         subtitle.getStyle().set("font-weight", "normal").set("font-size", "1.3rem").set("margin-top", ".5rem");
         subtitle.getStyle().set("text-align", "center");
         titlesContainer.add(title, subtitle);
@@ -72,9 +74,27 @@ public class FileEncryptionView extends HorizontalLayout {
         optionsContainer.getStyle()
                 .set("display", "flex")
                 .set("width", "100%")
-                .set("flex-direction", "row")
                 .set("align-items", "center")
                 .set("justify-content", "center")
+                .set("flex-direction", "column")
+                .set("gap", ".5rem");
+
+        //Password Field
+        PasswordField password = new PasswordField();
+        password.setLabel("Password");
+        password.setPlaceholder("Enter your password");
+        password.setHelperText("Enter your password");
+        password.setRequired(true);
+        password.setRequiredIndicatorVisible(true);
+        password.getStyle().set("width", "100%");
+
+
+        // Key and mode options Container
+        Div keyModeContainer = new Div();
+        keyModeContainer.getStyle()
+                .set("display", "flex")
+                .set("width", "100%")
+                .set("flex-direction", "row")
                 .set("gap", ".5rem");
 
         // Key size options
@@ -93,8 +113,11 @@ public class FileEncryptionView extends HorizontalLayout {
         encryptionMode.setLabel("Encryption Mode");
         encryptionMode.setHelperText("Select the encryption mode");
 
+        // Key and mode options Container
+        keyModeContainer.add(keySize, encryptionMode);
+
         // Add components to the optionsContainer
-        optionsContainer.add(keySize, encryptionMode);
+        optionsContainer.add(password, keyModeContainer );
 
         // Add components to the uploadContainer
         uploadContainer.add(upload);
@@ -105,10 +128,10 @@ public class FileEncryptionView extends HorizontalLayout {
 
         // Button action
         encryptButton.addClickListener(e -> {
-            Notification.show("Text encrypted");
+            // ENCRYPT FILE
+            AESFilesEncDec aesFilesEncDec = new AESFilesEncDec();
+
         });
-
-
 
         // Add components to the mainContainer
         mainContainer.add(titlesContainer, uploadContainer, optionsContainer, encryptButton);
