@@ -1,27 +1,33 @@
 package assets.views.fileencryption;
 
 import assets.AES.AESFilesEncDec;
-import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.upload.Upload;
+import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
 import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 import assets.views.MainLayout;
-import org.apache.tomcat.util.http.fileupload.FileUpload;
-import org.apache.tomcat.util.net.openssl.ciphers.Encryption;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.io.File;
 
 @PageTitle("File Encryption")
 @Route(value = "file-encryption", layout = MainLayout.class)
@@ -40,7 +46,7 @@ public class FileEncryptionView extends HorizontalLayout {
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
-            mainContainer.getStyle().set("gap", "2rem");
+        mainContainer.getStyle().set("gap", "2rem");
 
         // Title Container
         Div titlesContainer = new Div();
@@ -63,13 +69,13 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("gap", ".5rem");
 
         // File Upload
-        MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
+        MemoryBuffer buffer = new MemoryBuffer();
         Upload upload = new Upload(buffer);
 
-        //Upload Style
+        // Upload Style
         upload.setWidthFull();
 
-        //Key Size & Encryption mode options
+        // Key Size & Encryption mode options
         Div optionsContainer = new Div();
         optionsContainer.getStyle()
                 .set("display", "flex")
@@ -79,7 +85,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("flex-direction", "column")
                 .set("gap", ".5rem");
 
-        //Password Field
+        // Password Field
         PasswordField password = new PasswordField();
         password.setLabel("Password");
         password.setPlaceholder("Enter your password");
@@ -87,7 +93,6 @@ public class FileEncryptionView extends HorizontalLayout {
         password.setRequired(true);
         password.setRequiredIndicatorVisible(true);
         password.getStyle().set("width", "100%");
-
 
         // Key and mode options Container
         Div keyModeContainer = new Div();
@@ -105,7 +110,7 @@ public class FileEncryptionView extends HorizontalLayout {
         keySize.setLabel("Key Size");
         keySize.setHelperText("Select the key size");
 
-        //Encryption mode options
+        // Encryption mode options
         Select<String> encryptionMode = new Select<>();
         encryptionMode.setItems("CBC", "ECB");
         encryptionMode.setValue("CBC");
@@ -117,19 +122,58 @@ public class FileEncryptionView extends HorizontalLayout {
         keyModeContainer.add(keySize, encryptionMode);
 
         // Add components to the optionsContainer
-        optionsContainer.add(password, keyModeContainer );
+        optionsContainer.add(password, keyModeContainer);
 
         // Add components to the uploadContainer
         uploadContainer.add(upload);
 
         // Encrypt button
         Button encryptButton = new Button("Encrypt");
-        encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%").set("cursor", "pointer");
+        encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
+                .set("cursor", "pointer");
 
         // Button action
         encryptButton.addClickListener(e -> {
-            // ENCRYPT FILE
-            AESFilesEncDec aesFilesEncDec = new AESFilesEncDec();
+            // Get the file
+            String fileName = buffer.getFileName();
+            byte[] fileBytes = new byte[0];
+            try {
+                fileBytes = buffer.getInputStream().readAllBytes();
+
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            ;
+
+            try {
+                SecretKey key = AESFilesEncDec.getKeyFromPassword(password.getValue(), AESFilesEncDec.generateSalt(),
+                        keySize.getValue());
+                // Encrypt the file
+                File inputFile = new File(fileName);
+                File encryptedFile = new File(fileName + ".encrypted");
+                AESFilesEncDec.encryptFile("AES/" + encryptionMode.getValue() + "/PKCS5Padding", key,
+                        AESFilesEncDec.generateIv(), inputFile, encryptedFile);
+            } catch (NoSuchPaddingException ex) {
+            } catch (NoSuchAlgorithmException ex) {
+                throw new RuntimeException(ex);
+            } catch (InvalidKeySpecException ex) {
+                throw new RuntimeException(ex);
+            } catch (InvalidKeyException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (InvalidAlgorithmParameterException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (BadPaddingException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (IllegalBlockSizeException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
 
         });
 
@@ -138,7 +182,6 @@ public class FileEncryptionView extends HorizontalLayout {
 
         // Add the mainContainer to the screen
         add(mainContainer);
-
 
     }
 }
