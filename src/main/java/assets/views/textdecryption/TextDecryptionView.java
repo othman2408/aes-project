@@ -63,11 +63,14 @@ public class TextDecryptionView extends HorizontalLayout {
         encryptedTextArea.setLabel("Encrypted Text");
         encryptedTextArea.setClearButtonVisible(true);
         encryptedTextArea.focus();
+        encryptedTextArea.setRequired(true);
 
         // Password input
         PasswordField passwordField = new PasswordField();
         passwordField.setLabel("Secret Key");
         passwordField.setHelperText("Enter your secret key");
+        passwordField.setClearButtonVisible(true);
+        passwordField.setRequired(true);
 
         // Key size & Encryption mode options
         Div optionsContainer = new Div();
@@ -136,9 +139,9 @@ public class TextDecryptionView extends HorizontalLayout {
         // Button action
         decryptButton.addClickListener(e -> {
             try {
+
                 // Decryption
-                AESTextDecryption aesTextDecryption = new AESTextDecryption();
-                String decryptedText = aesTextDecryption.decrypt(encryptedTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
+                String decryptedText = AESTextDecryption.decrypt(encryptedTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
                 result.setValue(decryptedText);
 
                 // Notification

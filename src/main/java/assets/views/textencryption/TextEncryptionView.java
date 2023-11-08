@@ -69,6 +69,7 @@ public class TextEncryptionView extends HorizontalLayout {
         plainTextArea.setLabel("Plain Text");
         plainTextArea.setClearButtonVisible(true);
         plainTextArea.focus();
+        plainTextArea.setRequired(true);
 
         //Key Size & Encryption mode options
         Div optionsContainer = new Div();
@@ -81,6 +82,8 @@ public class TextEncryptionView extends HorizontalLayout {
         PasswordField passwordField = new PasswordField();
         passwordField.setLabel("Secret Key");
         passwordField.setHelperText("Enter your secret key");
+        passwordField.setRequired(true);
+
 
         Div modeKeyContainer = new Div();
         modeKeyContainer.getStyle()
@@ -143,12 +146,9 @@ public class TextEncryptionView extends HorizontalLayout {
         // Button action
         encryptButton.addClickListener(e -> {
             try {
-                // ENCRYPT TEXT
-                AESTextEncryption aesText = new AESTextEncryption();
-                String encryptedText = aesText.encrypt(plainTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
+                // ENCRYPTION
+                String encryptedText = AESTextEncryption.encrypt(plainTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
                 result.setValue(encryptedText);
-
-
 
 
                 // SHOW NOTIFICATION
