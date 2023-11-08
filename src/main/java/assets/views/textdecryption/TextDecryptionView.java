@@ -147,6 +147,7 @@ public class TextDecryptionView extends HorizontalLayout {
                 // Notification
                 Notification notification = new Notification("Text decrypted", 3000);
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                notification.setPosition(Notification.Position.TOP_CENTER);
                 notification.open();
 
             } catch (Exception exception) {
