@@ -14,7 +14,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 
 public class AESFilesEncDec {
 
@@ -90,8 +89,6 @@ public class AESFilesEncDec {
         outputStream = new FileOutputStream(decryptedFile);
         outputStream.write(decryptedData);
         outputStream.close();
-
-
 
 
     }
