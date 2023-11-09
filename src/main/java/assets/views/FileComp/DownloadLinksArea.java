@@ -2,6 +2,7 @@ package assets.views.FileComp;
 
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.H4;
+import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
 
@@ -9,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Objects;
 
 public class DownloadLinksArea extends VerticalLayout {
 
@@ -19,22 +21,16 @@ public class DownloadLinksArea extends VerticalLayout {
         refreshFileLinks();
         setMargin(true);
 
-        this.getStyle().set("background-color", "red").set("margin", "0");
+        this.getStyle().set("background-color", "rgb(231 235 238 / 70%)").set("margin", "0");
     }
 
     public void refreshFileLinks() {
-        //remove all links
         removeAll();
 
-        add(new H4("Download Links:"));
-
-        // Delete old files
-        for (File file : uploadFolder.listFiles()) {
-            file.delete();
-        }
+        add(new H5("Encrypted Files:"));
 
         // Add links to new files
-        for (File file : uploadFolder.listFiles()) {
+        for (File file : Objects.requireNonNull(uploadFolder.listFiles())) {
             addLinkToFile(file);
         }
     }
