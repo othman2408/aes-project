@@ -1,6 +1,5 @@
 package assets.views.textdecryption;
 
-import assets.AES.AESText;
 import assets.AES.AESTextDecryption;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
@@ -62,7 +61,6 @@ public class TextDecryptionView extends HorizontalLayout {
         encryptedTextArea.setPlaceholder("Enter the encrypted text");
         encryptedTextArea.setLabel("Encrypted Text");
         encryptedTextArea.setClearButtonVisible(true);
-        encryptedTextArea.focus();
         encryptedTextArea.setRequired(true);
 
         // Password input
@@ -78,7 +76,6 @@ public class TextDecryptionView extends HorizontalLayout {
                 .set("width", "100%")
                 .set("display", "flex")
                 .set("flex-direction", "column");
-
 
         Div modeKeyContainer = new Div();
         modeKeyContainer.getStyle()
@@ -113,7 +110,8 @@ public class TextDecryptionView extends HorizontalLayout {
 
         // Decrypt button
         Button decryptButton = new Button("Decrypt");
-        decryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%").set("cursor", "pointer");
+        decryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
+                .set("cursor", "pointer");
 
         // Enter key action
         encryptedTextArea.addKeyPressListener(Key.ENTER, e -> {
@@ -140,12 +138,22 @@ public class TextDecryptionView extends HorizontalLayout {
         decryptButton.addClickListener(e -> {
             try {
 
+                // Validation
+                if (encryptedTextArea.getValue().isEmpty() || passwordField.getValue().isEmpty()) {
+                    Notification notification = new Notification("Please fill all the fields", 4000);
+                    notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                    notification.setPosition(Notification.Position.TOP_CENTER);
+                    notification.open();
+                    return;
+                }
+
                 // Decryption
-                String decryptedText = AESTextDecryption.decrypt(encryptedTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
+                String decryptedText = AESTextDecryption.decrypt(encryptedTextArea.getValue(), passwordField.getValue(),
+                        keySize.getValue(), encryptionMode.getValue());
                 result.setValue(decryptedText);
 
                 // Notification
-                Notification notification = new Notification("Text decrypted", 3000);
+                Notification notification = new Notification("Text decrypted", 4000);
                 notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
                 notification.setPosition(Notification.Position.TOP_CENTER);
                 notification.open();

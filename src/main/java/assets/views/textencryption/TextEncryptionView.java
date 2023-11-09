@@ -1,9 +1,7 @@
 package assets.views.textencryption;
 
-import assets.AES.AESText;
 import assets.AES.AESTextEncryption;
 import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -25,10 +23,7 @@ import assets.views.MainLayout;
 @RouteAlias(value = "", layout = MainLayout.class)
 public class TextEncryptionView extends HorizontalLayout {
 
-
     public TextEncryptionView() {
-
-        // Encryption UI
 
         // Place the mainContainer in the center of the screen
         setAlignItems(Alignment.CENTER);
@@ -68,10 +63,9 @@ public class TextEncryptionView extends HorizontalLayout {
         plainTextArea.setPlaceholder("Enter a text to encrypt");
         plainTextArea.setLabel("Plain Text");
         plainTextArea.setClearButtonVisible(true);
-        plainTextArea.focus();
         plainTextArea.setRequired(true);
 
-        //Key Size & Encryption mode options
+        // Key Size & Encryption mode options
         Div optionsContainer = new Div();
         optionsContainer.getStyle()
                 .set("width", "100%")
@@ -83,7 +77,6 @@ public class TextEncryptionView extends HorizontalLayout {
         passwordField.setLabel("Secret Key");
         passwordField.setHelperText("Enter your secret key");
         passwordField.setRequired(true);
-
 
         Div modeKeyContainer = new Div();
         modeKeyContainer.getStyle()
@@ -102,7 +95,7 @@ public class TextEncryptionView extends HorizontalLayout {
         keySize.setLabel("Key Size");
         keySize.setHelperText("Select the key size");
 
-        //Encryption mode options
+        // Encryption mode options
         Select<String> encryptionMode = new Select<>();
         encryptionMode.setItems("CBC", "ECB");
         encryptionMode.setValue("CBC");
@@ -118,7 +111,8 @@ public class TextEncryptionView extends HorizontalLayout {
 
         // Encrypt button
         Button encryptButton = new Button("Encrypt");
-        encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%").set("cursor", "pointer");
+        encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
+                .set("cursor", "pointer");
 
         // Enter key action
         plainTextArea.addKeyPressListener(Key.ENTER, e -> {
@@ -138,30 +132,37 @@ public class TextEncryptionView extends HorizontalLayout {
 
         // Result text area
         TextArea result = new TextArea();
-        //<theme-editor-local-classname>
+        // <theme-editor-local-classname>
         result.addClassName("text-encryption-view-text-area-1");
         result.setLabel("Encrypted Text");
         result.getStyle().set("min-height", "8rem");
 
         // Button action
         encryptButton.addClickListener(e -> {
-            try {
-                // ENCRYPTION
-                String encryptedText = AESTextEncryption.encrypt(plainTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
-                result.setValue(encryptedText);
-
-
-                // SHOW NOTIFICATION
-                Notification notification = new Notification(
-                        "Text encrypted", 3000,
+            if (plainTextArea.isEmpty() || passwordField.isEmpty()) {
+                Notification warning = new Notification(
+                        "Please fill all the fields", 4000,
                         Notification.Position.TOP_CENTER);
-                notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                notification.open();
-            } catch (Exception exception) {
-                exception.printStackTrace();
+                warning.addThemeVariants(NotificationVariant.LUMO_WARNING);
+                warning.open();
+            } else {
+                try {
+                    // ENCRYPTION
+                    String encryptedText = AESTextEncryption.encrypt(plainTextArea.getValue(), passwordField.getValue(),
+                            keySize.getValue(), encryptionMode.getValue());
+                    result.setValue(encryptedText);
+
+                    // SHOW NOTIFICATION
+                    Notification notification = new Notification(
+                            "Text encrypted", 4000,
+                            Notification.Position.TOP_CENTER);
+                    notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                    notification.open();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
             }
         });
-
 
         // Make the TextArea grow and take full available height
         result.getStyle().set("flex", "1");
