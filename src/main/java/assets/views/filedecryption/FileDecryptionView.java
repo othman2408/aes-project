@@ -1,5 +1,6 @@
 package assets.views.filedecryption;
 
+import assets.views.FileComp.FileProcessingComponent;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
@@ -59,11 +60,10 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("gap", ".5rem");
 
         // File Upload
-        MemoryBuffer buffer = new MemoryBuffer();
-        Upload upload = new Upload(buffer);
+        FileProcessingComponent fileProcessingComponent = new FileProcessingComponent();
 
-        //Upload Style
-        upload.setWidthFull();
+        // Add components to the uploadContainer
+        uploadContainer.add(fileProcessingComponent);
 
         //Key Size & Decryption mode options
         Div optionsContainer = new Div();
@@ -114,8 +114,6 @@ public class FileDecryptionView extends HorizontalLayout {
         // Add components to the optionsContainer
         optionsContainer.add(password, keyModeContainer);
 
-        // Add components to the uploadContainer
-        uploadContainer.add(upload);
 
         // Decrypt button
         Button decryptButton = new Button("Decrypt");

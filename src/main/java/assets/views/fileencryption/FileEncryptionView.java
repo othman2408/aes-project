@@ -1,5 +1,7 @@
 package assets.views.fileencryption;
 
+import assets.AES.AESFilesEncDec;
+import assets.views.FileComp.FileProcessingComponent;
 import assets.views.FileComp.UploadDownloadView;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
@@ -7,6 +9,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -14,6 +17,16 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.io.File;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 @PageTitle("File Encryption")
 @Route(value = "file-encryption", layout = MainLayout.class)
@@ -55,7 +68,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("gap", ".5rem");
 
         // File Upload
-        UploadDownloadView uploadDownloadView = new UploadDownloadView();
+        FileProcessingComponent uploadDownloadView = new FileProcessingComponent();
 
         // Key Size & Encryption mode options
         Div optionsContainer = new Div();
@@ -114,6 +127,36 @@ public class FileEncryptionView extends HorizontalLayout {
 
         // Button action
         encryptButton.addClickListener(e -> {
+            // Get the selected password, key size, and encryption mode
+            String enteredPassword = password.getValue();
+            Integer selectedKeySize = keySize.getValue();
+            String selectedEncryptionMode = encryptionMode.getValue();
+
+            // Check if a file has been uploaded
+            if (uploadDownloadView.downloadedFiles.isEmpty()) {
+                Notification.show("Please upload a file before encrypting.");
+                return;
+            }
+
+            // Get the uploaded file
+            File inputFile = uploadDownloadView.downloadedFiles.get(0);
+
+            // Prepare the output file for encryption
+            File outputFile = new File(uploadDownloadView.uploadFolder, "encryptedFile.enc");
+
+            try {
+                // Generate a key based on the entered password and key size
+                byte[] salt = AESFilesEncDec.generateSalt();
+                AESFilesEncDec.encryptFile(selectedEncryptionMode, AESFilesEncDec.getKeyFromPassword(enteredPassword, salt, selectedKeySize),
+                        AESFilesEncDec.generateIv(), inputFile, outputFile);
+
+                // Display a success message
+                Notification.show("File encrypted successfully and saved as encryptedFile.enc");
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException | IOException | NoSuchPaddingException |
+                     InvalidKeyException | InvalidAlgorithmParameterException | BadPaddingException |
+                     IllegalBlockSizeException ex) {
+                Notification.show("Encryption failed: " + ex.getMessage());
+            }
 
         });
 
