@@ -28,7 +28,7 @@ public class AESFilesEncDec {
             throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-        KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, keySize);
+        PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, keySize);
         SecretKey secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
         return secret;
     }
@@ -39,55 +39,32 @@ public class AESFilesEncDec {
         return new IvParameterSpec(iv);
     }
 
-    public static void encryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
-                                   File inputFile, File outputFile) throws IOException, NoSuchPaddingException,
-            NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException,
-            BadPaddingException, IllegalBlockSizeException {
+    public static byte[] encryptFile(String algorithm, SecretKey key, IvParameterSpec iv, byte[] fileData)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+            InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
 
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 
-        try (FileInputStream inputStream = new FileInputStream(inputFile);
-             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
-            byte[] buffer = new byte[64];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                byte[] output = cipher.update(buffer, 0, bytesRead);
-                if (output != null) {
-                    outputStream.write(output);
-                }
-            }
-            byte[] outputBytes = cipher.doFinal();
-            if (outputBytes != null) {
-                outputStream.write(outputBytes);
-            }
-        }
+        return cipher.doFinal(fileData);
     }
 
-    public static void decryptFile(String algorithm, SecretKey key, IvParameterSpec iv,
-                                   File inputFile, File outputFile) throws IOException, NoSuchPaddingException,
-            NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException,
-            BadPaddingException, IllegalBlockSizeException {
+    public static byte[] decryptFile(String algorithm, SecretKey key, IvParameterSpec iv, byte[] encryptedData)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException,
+            InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
 
         Cipher cipher = Cipher.getInstance(algorithm);
         cipher.init(Cipher.DECRYPT_MODE, key, iv);
 
-        try (FileInputStream inputStream = new FileInputStream(inputFile);
-             FileOutputStream outputStream = new FileOutputStream(outputFile)) {
-            byte[] buffer = new byte[64];
-            int bytesRead;
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                byte[] output = cipher.update(buffer, 0, bytesRead);
-                if (output != null) {
-                    outputStream.write(output);
-                }
-            }
-            byte[] outputBytes = cipher.doFinal();
-            if (outputBytes != null) {
-                outputStream.write(outputBytes);
-            }
-        }
+        return cipher.doFinal(encryptedData);
     }
+
+    public static byte[] generateSalt() {
+        byte[] salt = new byte[16];
+        new SecureRandom().nextBytes(salt);
+        return salt;
+    }
+
 
     public static void main(String[] args) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException,
             NoSuchPaddingException, IllegalBlockSizeException, IOException, BadPaddingException, InvalidKeyException,
@@ -98,20 +75,25 @@ public class AESFilesEncDec {
         SecretKey key = getKeyFromPassword("pass1", salt, 128);
         IvParameterSpec iv = generateIv();
 
-        File inputFile = new File("input.txt");
-        File encryptedFile = new File("encryptedFile.enc");
-        File decryptedFile = new File("decryptedFile.txt");
+        File inputFile = new File("src/main/java/assets/AESTests/test.txt");
+        File encryptedFile = new File("src/main/java/assets/AESTests/encryptedFile.enc");
+        File decryptedFile = new File("src/main/java/assets/AESTests/decryptedFile.txt");
 
-        // File encryption
-        encryptFile("AES/CBC/PKCS5Padding", key, iv, inputFile, encryptedFile);
+        // Encrypt file and save it in encryptedFile
+        byte[] encryptedData = encryptFile("AES/CBC/PKCS5Padding", key, iv, new FileInputStream(inputFile).readAllBytes());
+        FileOutputStream outputStream = new FileOutputStream(encryptedFile);
+        outputStream.write(encryptedData);
+        outputStream.close();
 
-        // File decryption
-        decryptFile("AES/CBC/PKCS5Padding", key, iv, encryptedFile, decryptedFile);
+        // Decrypt file and save it in decryptedFile
+        byte[] decryptedData = decryptFile("AES/CBC/PKCS5Padding", key, iv, new FileInputStream(encryptedFile).readAllBytes());
+        outputStream = new FileOutputStream(decryptedFile);
+        outputStream.write(decryptedData);
+        outputStream.close();
+
+
+
+
     }
 
-    public static byte[] generateSalt() {
-        final byte[] salt = new byte[16];
-        new SecureRandom().nextBytes(salt);
-        return salt;
-    }
 }

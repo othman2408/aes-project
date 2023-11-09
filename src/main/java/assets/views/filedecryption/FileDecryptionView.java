@@ -1,7 +1,6 @@
 package assets.views.filedecryption;
 
 import assets.views.FileComp.FileProcessingComponent;
-import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -9,14 +8,10 @@ import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.PasswordField;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
@@ -60,10 +55,7 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("gap", ".5rem");
 
         // File Upload
-        FileProcessingComponent fileProcessingComponent = new FileProcessingComponent();
 
-        // Add components to the uploadContainer
-        uploadContainer.add(fileProcessingComponent);
 
         //Key Size & Decryption mode options
         Div optionsContainer = new Div();

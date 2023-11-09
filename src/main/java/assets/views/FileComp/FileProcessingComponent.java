@@ -9,34 +9,41 @@ import com.vaadin.flow.component.upload.MultiFileReceiver;
 import com.vaadin.flow.component.upload.Receiver;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.server.VaadinSession;
+
 
 import java.io.*;
 import java.util.*;
 
 public class FileProcessingComponent extends VerticalLayout {
 
-    private final Upload uploadField;
-    private final Span errorField;
-    public final File uploadFolder;
-    public final List<File> downloadedFiles;
+    private Upload uploadField;
+    private Span errorField;
+    private File uploadFolder;
+    private List<File> downloadedFiles;
     private Set<String> sessionDownloadedFiles;
+    private String encryptionPassword;
+    private int keySize;
+    private String encryptionMode;
 
-    public FileProcessingComponent() {
-        uploadFolder = getUploadFolder();
-        sessionDownloadedFiles = getSessionDownloadedFiles();
-        downloadedFiles = new ArrayList<>();
-        uploadField = new Upload(createFileReceiver(uploadFolder));
-        uploadField.setMaxFiles(100);
-        uploadField.setMaxFileSize(1 * 1024 * 1024);
 
-        errorField = new Span();
-        errorField.setVisible(false);
-        errorField.getStyle().set("color", "red");
+    public FileProcessingComponent(File uploadFolder,
+                                   String encryptionPassword, int keySize, String encryptionMode) {
+        this.uploadFolder = uploadFolder;
+        this.downloadedFiles = new ArrayList<>();
+        this.uploadField = new Upload(createFileReceiver(uploadFolder));
+        this.uploadField.setMaxFiles(100);
+        this.uploadField.setMaxFileSize(1024 * 1024);
+        this.errorField = new Span();
+        this.errorField.setVisible(false);
+        this.errorField.getStyle().set("color", "red");
 
-        uploadField.addFailedListener(e -> showErrorMessage(e.getReason().getMessage()));
-        uploadField.addFileRejectedListener(e -> showErrorMessage(e.getErrorMessage()));
-        uploadField.setWidthFull();
+        this.encryptionPassword = encryptionPassword;
+        this.keySize = keySize;
+        this.encryptionMode = encryptionMode;
+
+        this.uploadField.addFailedListener(e -> showErrorMessage(e.getReason().getMessage()));
+        this.uploadField.addFileRejectedListener(e -> showErrorMessage(e.getErrorMessage()));
+        this.uploadField.setWidthFull();
 
         setPadding(false);
         add(uploadField, errorField, createDownloadLinksArea());
@@ -131,35 +138,6 @@ public class FileProcessingComponent extends VerticalLayout {
         }
     }
 
-    private Set<String> getSessionDownloadedFiles() {
-        Set<String> downloadedFiles = (Set<String>) VaadinSession.getCurrent().getAttribute("downloadedFiles");
-        return downloadedFiles != null ? downloadedFiles : new HashSet<>();
-    }
 
-    private void setSessionDownloadedFiles(Set<String> downloadedFiles) {
-        VaadinSession.getCurrent().setAttribute("downloadedFiles", downloadedFiles);
-    }
 
-    private void markAsDownloaded(String fileName) {
-        sessionDownloadedFiles.add(fileName);
-        setSessionDownloadedFiles(sessionDownloadedFiles);
-    }
-
-//    private void encryptFile(File inputFile, File outputFile) {
-//        try {
-//            AESFilesEncDec.encryptFile("AES/CBC/PKCS5Padding", encryptionPassword, inputFile, outputFile);
-//        } catch (IOException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
-//                 NoSuchPaddingException | InvalidKeyException e) {
-//            e.printStackTrace();
-//        }
-//    }
-//
-//    private void decryptFile(File inputFile, File outputFile) {
-//        try {
-//            AESFilesEncDec.decryptFile("AES/CBC/PKCS5Padding", encryptionPassword, inputFile, outputFile);
-//        } catch (IOException | NoSuchAlgorithmException | InvalidAlgorithmParameterException |
-//                 NoSuchPaddingException | InvalidKeyException e) {
-//            e.printStackTrace();
-//        }
-//    }
 }
