@@ -240,7 +240,7 @@ public class TextEncryptionView extends HorizontalLayout {
             notify("Text encrypted successfully", 4000, "LUMO_SUCCESS");
         } catch (Exception exception) {
             notify(exception.getMessage(), 4000, "LUMO_ERROR");
-            exception.printStackTrace();
+            exception.getCause();
         }
     }
 
@@ -251,7 +251,7 @@ public class TextEncryptionView extends HorizontalLayout {
      * @param duration The duration of the notification.
      * @param type     The type of the notification.
      */
-    private void notify(String msg, int duration, String type) {
+    public void notify(String msg, int duration, String type) {
         Notification notification = new Notification(msg, duration, Notification.Position.TOP_CENTER);
         notification.addThemeVariants(NotificationVariant.valueOf(type));
         notification.open();
