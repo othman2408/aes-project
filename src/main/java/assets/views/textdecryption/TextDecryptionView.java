@@ -220,14 +220,10 @@ public class TextDecryptionView extends HorizontalLayout {
         decryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
                 .set("cursor", "pointer");
 
-        // Enter key action
-        encryptedTextArea.addKeyPressListener(Key.ENTER, e -> {
-            Notification.show("Text decrypted");
-        });
-
         decryptButton.addClickListener(e -> {
             if (isValidInput(encryptedTextArea)) {
                 decryptText(encryptedTextArea);
+
             } else {
                 notify("Please fill all the fields", 4000, "LUMO_WARNING");
             }
