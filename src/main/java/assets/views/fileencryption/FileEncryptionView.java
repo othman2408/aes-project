@@ -1,9 +1,9 @@
 package assets.views.fileencryption;
 
 import assets.AES.AESFilesEncDec;
+import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
@@ -19,12 +19,15 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
 import com.vaadin.flow.server.StreamResource;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -35,6 +38,9 @@ import java.security.spec.InvalidKeySpecException;
 @Route(value = "file-encryption", layout = MainLayout.class)
 @Uses(Icon.class)
 public class FileEncryptionView extends HorizontalLayout {
+
+    private Anchor downloadLink;
+    private byte[] encryptedData;
 
     public FileEncryptionView() {
         // Place the mainContainer in the center of the screen
@@ -67,16 +73,6 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("align-items", "center")
                 .set("justify-content", "center")
                 .set("padding", "2rem 0rem 0rem 0rem")
-                .set("gap", ".5rem");
-
-        // Key Size & Encryption mode options
-        Div optionsContainer = new Div();
-        optionsContainer.getStyle()
-                .set("display", "flex")
-                .set("width", "100%")
-                .set("align-items", "center")
-                .set("justify-content", "center")
-                .set("flex-direction", "column")
                 .set("gap", ".5rem");
 
         // Password Field
@@ -115,9 +111,6 @@ public class FileEncryptionView extends HorizontalLayout {
         // Key and mode options Container
         keyModeContainer.add(keySize, encryptionMode);
 
-        // Add components to the optionsContainer
-        optionsContainer.add(password, keyModeContainer);
-
         // Create a mutable container to store the uploaded file data and name
         class FileDataContainer {
             private byte[] data;
@@ -142,10 +135,13 @@ public class FileEncryptionView extends HorizontalLayout {
 
         FileDataContainer fileDataContainer = new FileDataContainer();
 
-        /* Example for MemoryBuffer */
+        // Example for MemoryBuffer
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload singleFileUpload = new Upload(memoryBuffer);
         singleFileUpload.setAcceptedFileTypes("text/plain");
+
+        // Style the upload component
+        singleFileUpload.setWidthFull();
 
         // Add a succeeded listener to handle file uploads
         singleFileUpload.addSucceededListener(event -> {
@@ -174,22 +170,29 @@ public class FileEncryptionView extends HorizontalLayout {
                     SecretKey key = AESFilesEncDec.getKeyFromPassword(password.getValue(), new byte[16], keySize.getValue());
                     IvParameterSpec iv = AESFilesEncDec.generateIv();
 
-                    byte[] encryptedData = AESFilesEncDec.encryptFile(encryptionAlgorithm, key, iv, uploadedFileData);
+                    encryptedData = AESFilesEncDec.encryptFile(encryptionAlgorithm, key, iv, uploadedFileData);
 
-                    // Generate a temporary link to download the encrypted file
+                    // Remove the old download link if it exists
+                    if (downloadLink != null) {
+                        mainContainer.remove(downloadLink);
+                    }
+
+                    // Save the encrypted data to a file
                     String encryptedFileName = uploadedFileName + ".enc";
+                    File encryptedFile = new File(encryptedFileName);
+                    FileOutputStream output = new FileOutputStream(encryptedFile);
+                    output.write(encryptedData);
+                    output.close();
 
-                    // Create a StreamResource for the encrypted file
-                    StreamResource resource = new StreamResource(encryptedFileName, () -> new ByteArrayInputStream(encryptedData));
-
-                    // Create a download link using Anchor component
-                    Anchor downloadLink = new Anchor(resource, encryptedFileName);
-                    downloadLink.getElement().setAttribute("download", true);
-                    downloadLink.add(new Button("Download Encrypted File"));
-
-                    // Add the download link to the mainContainer
+                    // Create and add the new download link
+                    downloadLink = downloadLink(encryptedFileName);
                     mainContainer.add(downloadLink);
-                } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
+
+                    // clear password field and the upload component
+                    password.clear();
+
+
+                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
                          InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException |
                          InvalidKeySpecException exception) {
                     exception.printStackTrace();
@@ -200,9 +203,22 @@ public class FileEncryptionView extends HorizontalLayout {
         });
 
         // Add components to the mainContainer
-        mainContainer.add(titlesContainer, singleFileUpload, optionsContainer, encryptButton);
+        mainContainer.add(titlesContainer, singleFileUpload, password, keyModeContainer, encryptButton);
 
         // Add the mainContainer to the screen
         add(mainContainer);
+    }
+
+    private Anchor downloadLink(String encryptedFileName) {
+        Anchor link = new Anchor(new StreamResource(encryptedFileName, () -> new ByteArrayInputStream(encryptedData)), "Download Encrypted File");
+        link.getStyle().set("text-decoration", "none");
+        link.getStyle().set("background-color", "#4CAF50");
+        link.getStyle().set("color", "white");
+        link.getStyle().set("padding", "10px 20px");
+        link.getStyle().set("border", "1px solid #4CAF50");
+        link.getStyle().set("border-radius", "5px");
+        link.getStyle().set("cursor", "pointer");
+        link.getElement().setAttribute("download", true);
+        return link;
     }
 }
