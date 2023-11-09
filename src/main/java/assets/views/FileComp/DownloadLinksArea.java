@@ -1,7 +1,6 @@
 package assets.views.FileComp;
 
 import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.H4;
 import com.vaadin.flow.component.html.H5;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.server.StreamResource;
