@@ -1,6 +1,6 @@
 package assets.views.fileencryption;
 
-import assets.AES.AESFilesEncDec;
+import assets.views.FileComp.UploadDownloadView;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
@@ -11,23 +11,9 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.PasswordField;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MemoryBuffer;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.io.File;
 
 @PageTitle("File Encryption")
 @Route(value = "file-encryption", layout = MainLayout.class)
@@ -69,11 +55,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("gap", ".5rem");
 
         // File Upload
-        MemoryBuffer buffer = new MemoryBuffer();
-        Upload upload = new Upload(buffer);
-
-        // Upload Style
-        upload.setWidthFull();
+        UploadDownloadView uploadDownloadView = new UploadDownloadView();
 
         // Key Size & Encryption mode options
         Div optionsContainer = new Div();
@@ -124,8 +106,6 @@ public class FileEncryptionView extends HorizontalLayout {
         // Add components to the optionsContainer
         optionsContainer.add(password, keyModeContainer);
 
-        // Add components to the uploadContainer
-        uploadContainer.add(upload);
 
         // Encrypt button
         Button encryptButton = new Button("Encrypt");
@@ -134,51 +114,11 @@ public class FileEncryptionView extends HorizontalLayout {
 
         // Button action
         encryptButton.addClickListener(e -> {
-            // Get the file
-            String fileName = buffer.getFileName();
-            byte[] fileBytes = new byte[0];
-            try {
-                fileBytes = buffer.getInputStream().readAllBytes();
-
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
-            ;
-
-            try {
-                SecretKey key = AESFilesEncDec.getKeyFromPassword(password.getValue(), AESFilesEncDec.generateSalt(),
-                        keySize.getValue());
-                // Encrypt the file
-                File inputFile = new File(fileName);
-                File encryptedFile = new File(fileName + ".encrypted");
-                AESFilesEncDec.encryptFile("AES/" + encryptionMode.getValue() + "/PKCS5Padding", key,
-                        AESFilesEncDec.generateIv(), inputFile, encryptedFile);
-            } catch (NoSuchPaddingException ex) {
-            } catch (NoSuchAlgorithmException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvalidKeySpecException ex) {
-                throw new RuntimeException(ex);
-            } catch (InvalidKeyException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (InvalidAlgorithmParameterException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (BadPaddingException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (IllegalBlockSizeException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
 
         });
 
         // Add components to the mainContainer
-        mainContainer.add(titlesContainer, uploadContainer, optionsContainer, encryptButton);
+        mainContainer.add(titlesContainer, uploadDownloadView ,optionsContainer, encryptButton);
 
         // Add the mainContainer to the screen
         add(mainContainer);
