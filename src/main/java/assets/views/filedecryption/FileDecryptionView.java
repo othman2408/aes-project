@@ -37,10 +37,6 @@ public class FileDecryptionView extends HorizontalLayout {
 
     private Anchor downloadLink;
     private byte[] decryptedData;
-    private byte[] iv;
-    private byte[] salt;
-    private String encryptedFileName;
-
     private boolean isEncryptedFileUploaded = false;
     private boolean isIvFileUploaded = false;
     private boolean isSaltFileUploaded = false;
@@ -61,7 +57,7 @@ public class FileDecryptionView extends HorizontalLayout {
         // Title Container
         Div titlesContainer = new Div();
         H1 title = new H1("File Decryption");
-        title.getStyle().set("font-size", "2rem").set("text-align", "center");
+        title.getStyle().set("text-align", "center");
         H3 subtitle = new H3("Upload encrypted file, IV, and Salt to decrypt it");
         subtitle.getStyle().set("font-weight", "normal")
                 .set("font-size", "1.3rem")

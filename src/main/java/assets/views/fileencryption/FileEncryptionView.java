@@ -56,14 +56,18 @@ public class FileEncryptionView extends HorizontalLayout {
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
-        mainContainer.getStyle().set("gap", "2rem");
+        mainContainer.getStyle().set("gap", "1rem");
 
         // Title Container
         Div titlesContainer = new Div();
         H1 title = new H1("File Encryption");
         H3 subtitle = new H3("Upload a file to encrypt it");
-        subtitle.getStyle().set("font-weight", "normal").set("font-size", "1.3rem").set("margin-top", ".5rem");
-        subtitle.getStyle().set("text-align", "center");
+        subtitle.getStyle()
+                .set("font-weight", "normal")
+                .set("font-size", "1.3rem")
+                .set("margin-top", ".8rem")
+                .set("text-align", "center")
+                .set("margin-bottom", "2rem");
         titlesContainer.add(title, subtitle);
 
         // Action Container
