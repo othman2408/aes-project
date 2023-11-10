@@ -1,6 +1,6 @@
 package assets.views.fileencryption;
 
-import assets.AES.AESFilesEncDec;
+import assets.AES.AESFileEncDec;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
@@ -25,10 +25,9 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -40,7 +39,11 @@ import java.security.spec.InvalidKeySpecException;
 public class FileEncryptionView extends HorizontalLayout {
 
     private Anchor downloadLink;
+    private Anchor downloadIvLink;
+    private Anchor downloadSaltLink;
     private byte[] encryptedData;
+    private byte[] salt;
+    private byte[] iv;
 
     public FileEncryptionView() {
         // Place the mainContainer in the center of the screen
@@ -167,30 +170,56 @@ public class FileEncryptionView extends HorizontalLayout {
             if (uploadedFileName != null && uploadedFileData != null) {
                 try {
                     String encryptionAlgorithm = "AES/" + encryptionMode.getValue() + "/PKCS5Padding";
-                    SecretKey key = AESFilesEncDec.getKeyFromPassword(password.getValue(), new byte[16], keySize.getValue());
-                    IvParameterSpec iv = AESFilesEncDec.generateIv();
+                    salt = AESFileEncDec.generateSalt();
+                    SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), salt, keySize.getValue());
+                    IvParameterSpec ivSpec = AESFileEncDec.generateIv();
 
-                    encryptedData = AESFilesEncDec.encryptFile(encryptionAlgorithm, key, iv, uploadedFileData);
+                    // Update the IV byte array
+                    iv = ivSpec.getIV();
 
-                    // Remove the old download link if it exists
+                    encryptedData = AESFileEncDec.encryptFile(encryptionAlgorithm, key, ivSpec, uploadedFileData);
+
+                    // Remove the old download links if they exist
                     if (downloadLink != null) {
                         mainContainer.remove(downloadLink);
+                    }
+                    if (downloadIvLink != null) {
+                        mainContainer.remove(downloadIvLink);
+                    }
+                    if (downloadSaltLink != null) {
+                        mainContainer.remove(downloadSaltLink);
                     }
 
                     // Save the encrypted data to a file
                     String encryptedFileName = uploadedFileName + ".enc";
                     File encryptedFile = new File(encryptedFileName);
-                    FileOutputStream output = new FileOutputStream(encryptedFile);
-                    output.write(encryptedData);
-                    output.close();
+                    try (FileOutputStream output = new FileOutputStream(encryptedFile)) {
+                        output.write(encryptedData);
+                    }
 
-                    // Create and add the new download link
+                    // Save the IV to a file
+                    String ivFileName = uploadedFileName + "_iv.enc";
+                    File ivFile = new File(ivFileName);
+                    try (FileOutputStream ivOutput = new FileOutputStream(ivFile)) {
+                        ivOutput.write(iv);
+                    }
+
+                    // Save the salt to a file
+                    String saltFileName = uploadedFileName + "_salt.enc";
+                    File saltFile = new File(saltFileName);
+                    try (FileOutputStream saltOutput = new FileOutputStream(saltFile)) {
+                        saltOutput.write(salt);
+                    }
+
+                    // Create and add the new download links
                     downloadLink = downloadLink(encryptedFileName);
-                    mainContainer.add(downloadLink);
+                    downloadIvLink = downloadLink(ivFileName);
+                    downloadSaltLink = downloadLink(saltFileName);
 
-                    // clear password field and the upload component
+                    mainContainer.add(downloadLink, downloadIvLink, downloadSaltLink);
+
+                    // Clear password field and the upload component
                     password.clear();
-
 
                 } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
                          InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException |
@@ -202,6 +231,7 @@ public class FileEncryptionView extends HorizontalLayout {
             }
         });
 
+
         // Add components to the mainContainer
         mainContainer.add(titlesContainer, singleFileUpload, password, keyModeContainer, encryptButton);
 
@@ -209,8 +239,14 @@ public class FileEncryptionView extends HorizontalLayout {
         add(mainContainer);
     }
 
-    private Anchor downloadLink(String encryptedFileName) {
-        Anchor link = new Anchor(new StreamResource(encryptedFileName, () -> new ByteArrayInputStream(encryptedData)), "Download Encrypted File");
+    private Anchor downloadLink(String fileName) {
+        Anchor link = new Anchor(new StreamResource(fileName, () -> {
+            try {
+                return new ByteArrayInputStream(Files.readAllBytes(Paths.get(fileName)));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }), "Download File");
         link.getStyle().set("text-decoration", "none")
                 .set("background-color", "#4CAF50")
                 .set("color", "white")

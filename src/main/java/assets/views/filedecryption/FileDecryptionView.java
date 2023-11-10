@@ -1,12 +1,9 @@
 package assets.views.filedecryption;
 
-import assets.AES.AESFilesEncDec;
+import assets.AES.AESFileEncDec;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -37,8 +34,16 @@ import java.security.spec.InvalidKeySpecException;
 @Uses(Icon.class)
 public class FileDecryptionView extends HorizontalLayout {
 
+
     private Anchor downloadLink;
     private byte[] decryptedData;
+    private byte[] iv;
+    private byte[] salt;
+    private String encryptedFileName;
+
+    private boolean isEncryptedFileUploaded = false;
+    private boolean isIvFileUploaded = false;
+    private boolean isSaltFileUploaded = false;
 
     public FileDecryptionView() {
         // Place the mainContainer in the center of the screen
@@ -51,14 +56,18 @@ public class FileDecryptionView extends HorizontalLayout {
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
-        mainContainer.getStyle().set("gap", "2rem");
+        mainContainer.getStyle().set("gap", "1rem");
 
         // Title Container
         Div titlesContainer = new Div();
         H1 title = new H1("File Decryption");
-        H3 subtitle = new H3("Upload a file to decrypt it");
-        subtitle.getStyle().set("font-weight", "normal").set("font-size", "1.3rem").set("margin-top", ".5rem");
-        subtitle.getStyle().set("text-align", "center");
+        title.getStyle().set("font-size", "2rem").set("text-align", "center");
+        H3 subtitle = new H3("Upload encrypted file, IV, and Salt to decrypt it");
+        subtitle.getStyle().set("font-weight", "normal")
+                .set("font-size", "1.3rem")
+                .set("margin-top", ".8rem")
+                .set("text-align", "center")
+                .set("margin-bottom", "2rem");
         titlesContainer.add(title, subtitle);
 
         // Action Container
@@ -72,6 +81,18 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("justify-content", "center")
                 .set("padding", "2rem 0rem 0rem 0rem")
                 .set("gap", ".5rem");
+
+        // Encrypted File Upload component
+        MemoryBuffer encryptedFileBuffer = new MemoryBuffer();
+        Upload encryptedFileUpload = generateUploadComponent(encryptedFileBuffer, new Span("Upload Encrypted File"));
+
+        // IV File Upload component
+        MemoryBuffer ivBuffer = new MemoryBuffer();
+        Upload ivUpload = generateUploadComponent(ivBuffer, new Span("Upload Initialization Vector (IV) File"));
+
+        // Salt File Upload component
+        MemoryBuffer saltBuffer = new MemoryBuffer();
+        Upload saltUpload = generateUploadComponent(saltBuffer, new Span("Upload Salt File"));
 
         // Password Field
         PasswordField password = new PasswordField();
@@ -111,19 +132,37 @@ public class FileDecryptionView extends HorizontalLayout {
 
         // Create a mutable container to store the uploaded file data and name
         class FileDataContainer {
-            private byte[] data;
+            private byte[] encryptedData;
+            private byte[] iv;
+            private byte[] salt;
             private String fileName;
 
-            public void setData(byte[] data) {
-                this.data = data;
+            public void setEncryptedData(byte[] encryptedData) {
+                this.encryptedData = encryptedData;
             }
 
-            public byte[] getData() {
-                return data;
+            public void setIv(byte[] iv) {
+                this.iv = iv;
+            }
+
+            public void setSalt(byte[] salt) {
+                this.salt = salt;
             }
 
             public void setFileName(String fileName) {
                 this.fileName = fileName;
+            }
+
+            public byte[] getEncryptedData() {
+                return encryptedData;
+            }
+
+            public byte[] getIv() {
+                return iv;
+            }
+
+            public byte[] getSalt() {
+                return salt;
             }
 
             public String getFileName() {
@@ -134,23 +173,38 @@ public class FileDecryptionView extends HorizontalLayout {
         // Create an instance of the mutable container
         FileDataContainer fileDataContainer = new FileDataContainer();
 
-        // File Upload component
-        MemoryBuffer memoryBuffer = new MemoryBuffer();
-        Upload singleFileUpload = new Upload(memoryBuffer);
-
-        // Style the upload component
-        singleFileUpload.setWidthFull();
-
-
-        // Add a succeeded listener to handle file uploads
-        singleFileUpload.addSucceededListener(event -> {
+        // Add a succeeded listener to handle file uploads for encrypted file
+        encryptedFileUpload.addSucceededListener(event -> {
             // Store the uploaded file data and name in the container
             try {
-                fileDataContainer.setData(memoryBuffer.getInputStream().readAllBytes());
-            }catch (IOException e) {
+                fileDataContainer.setEncryptedData(encryptedFileBuffer.getInputStream().readAllBytes());
+                isEncryptedFileUploaded = true;
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             fileDataContainer.setFileName(event.getFileName());
+        });
+
+        // Add a succeeded listener to handle IV file uploads
+        ivUpload.addSucceededListener(event -> {
+            // Store the uploaded IV data
+            try {
+                fileDataContainer.setIv(ivBuffer.getInputStream().readAllBytes());
+                isIvFileUploaded = true;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        // Add a succeeded listener to handle salt file uploads
+        saltUpload.addSucceededListener(event -> {
+            // Store the uploaded salt data
+            try {
+                fileDataContainer.setSalt(saltBuffer.getInputStream().readAllBytes());
+                isSaltFileUploaded = true;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         // Decrypt button
@@ -160,60 +214,67 @@ public class FileDecryptionView extends HorizontalLayout {
 
         // Button action
         decryptButton.addClickListener(e -> {
-           byte[] uploadedFileData = fileDataContainer.getData();
-           String uploadedFileName = fileDataContainer.getFileName();
+            // Check if all required files are uploaded
+            if (!isEncryptedFileUploaded || !isIvFileUploaded || !isSaltFileUploaded || password.getValue().isEmpty()) {
+                notify("Please upload all required files and enter your password", 3000, "warning");
+                return;
+            }
 
-           if(uploadedFileName != null && uploadedFileData != null) {
-               try {
-                   String encryptionAlgorithm = "AES/" + decryptionMode.getValue() + "/PKCS5Padding";
-                   SecretKey key = AESFilesEncDec.getKeyFromPassword(password.getValue(), new byte[16], keySize.getValue());
-                     IvParameterSpec iv = AESFilesEncDec.generateIv();
+            try {
+                String encryptionAlgorithm = "AES/" + decryptionMode.getValue() + "/PKCS5Padding";
+                SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), fileDataContainer.getSalt(), keySize.getValue());
+                IvParameterSpec iv = new IvParameterSpec(fileDataContainer.getIv());
 
-                        decryptedData = AESFilesEncDec.decryptFile(encryptionAlgorithm, key, iv, uploadedFileData);
+                decryptedData = AESFileEncDec.decryptFile(encryptionAlgorithm, key, iv, fileDataContainer.getEncryptedData());
 
-                        //remove the old download link if it exists
-                        if(downloadLink != null) {
-                            mainContainer.remove(downloadLink);
-                        }
+                // Remove the old download link if it exists
+                if (downloadLink != null) {
+                    mainContainer.remove(downloadLink);
+                }
 
-                        //save the decrypted data to a file
-                        String decryptedFileName = uploadedFileName.substring(0, uploadedFileName.length() - 4);
-                        File decryptedFile = new File(decryptedFileName);
-                        FileOutputStream fileOutputStream = new FileOutputStream(decryptedFile);
-                        fileOutputStream.write(decryptedData);
-                        fileOutputStream.close();
+                // Save the decrypted data to a file
+                String decryptedFileName = fileDataContainer.getFileName().substring(0, fileDataContainer.getFileName().length() - 4);
+                File decryptedFile = new File(decryptedFileName);
+                FileOutputStream fileOutputStream = new FileOutputStream(decryptedFile);
+                fileOutputStream.write(decryptedData);
+                fileOutputStream.close();
 
-                        // Create a download link
-                        downloadLink = downloadLink(decryptedFileName);
-                        mainContainer.add(downloadLink);
+                // Create and add the new download link
+                downloadLink = downloadLink(decryptedFileName);
+                mainContainer.add(downloadLink);
 
-                        //clear the password field
-                        password.clear();
+                // Clear the password field
+                password.clear();
 
-                        //show a notification
-                        notify("File decrypted successfully", 3000, "SUCCESS");
+                // Show a notification
+                notify("File decrypted successfully", 3000, "success");
 
-               } catch (NoSuchAlgorithmException |
-                        InvalidKeySpecException | InvalidAlgorithmParameterException
-                        | NoSuchPaddingException
-                        | IllegalBlockSizeException | BadPaddingException
-                        | InvalidKeyException | IOException
-                       ex) {
-                   throw new RuntimeException(ex);
-               }
-
-           }else {
-                notify("Please upload a file to decrypt", 3000, "ERROR");
-           }
-
-
+            } catch (NoSuchAlgorithmException |
+                     InvalidKeySpecException | InvalidAlgorithmParameterException
+                     | NoSuchPaddingException
+                     | IllegalBlockSizeException | BadPaddingException
+                     | InvalidKeyException | IOException ex) {
+                // Show a notification for decryption errors
+                notify("Error decrypting the file. Please check your password and try again.", 3000, "error");
+                throw new RuntimeException(ex);
+            } finally {
+                // Reset the flags for the next decryption attempt
+                isEncryptedFileUploaded = false;
+                isIvFileUploaded = false;
+                isSaltFileUploaded = false;
+            }
         });
 
         // Add components to the mainContainer
-        mainContainer.add(titlesContainer, singleFileUpload, password, keyModeContainer, decryptButton);
+        mainContainer.add(titlesContainer, encryptedFileUpload, ivUpload, saltUpload, password, keyModeContainer, decryptButton);
 
         // Add the mainContainer to the screen
         add(mainContainer);
+    }
+
+    private void setUploadStyle(Upload upload) {
+        upload.setWidthFull();
+        upload.getElement().getThemeList().add("primary");
     }
 
     private Anchor downloadLink(String decryptedFileName) {
@@ -238,7 +299,29 @@ public class FileDecryptionView extends HorizontalLayout {
      */
     public void notify(String msg, int duration, String type) {
         Notification notification = new Notification(msg, duration, Notification.Position.TOP_CENTER);
-        notification.addThemeVariants(NotificationVariant.valueOf(type));
+
+        // Check for valid theme variants
+        if ("success".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        } else if ("error".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else if ("warning".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+        } else if ("primary".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+        } else {
+            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+        }
+
         notification.open();
     }
+
+    private Upload generateUploadComponent(MemoryBuffer buffer, Span label) {
+        Upload upload = new Upload(buffer);
+        upload.setDropLabel(label);
+        upload.setAcceptedFileTypes(".enc");
+        setUploadStyle(upload);
+        return upload;
+    }
+
 }

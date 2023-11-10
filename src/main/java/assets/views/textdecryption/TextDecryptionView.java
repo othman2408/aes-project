@@ -1,7 +1,6 @@
 package assets.views.textdecryption;
 
 import assets.AES.AESTextDecryption;
-import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
@@ -271,7 +270,20 @@ public class TextDecryptionView extends HorizontalLayout {
      */
     public void notify(String msg, int duration, String type) {
         Notification notification = new Notification(msg, duration, Notification.Position.TOP_CENTER);
-        notification.addThemeVariants(NotificationVariant.valueOf(type));
+
+        // Check for valid theme variants
+        if ("success".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        } else if ("error".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
+        } else if ("warning".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
+        } else if ("primary".equalsIgnoreCase(type)) {
+            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+        } else {
+            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+        }
+
         notification.open();
     }
 
