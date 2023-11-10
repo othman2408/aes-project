@@ -120,6 +120,8 @@ public class FileDecryptionView extends HorizontalLayout {
         // Key size options
         Select<Integer> keySize = new Select<>();
         keySize.setItems(128, 192, 256);
+        // add bit to the end of the item
+        keySize.setItemLabelGenerator(item -> item + " bit");
         keySize.setValue(128);
         keySize.getStyle().set("width", "100%");
         keySize.setLabel("Key Size");
@@ -223,7 +225,7 @@ public class FileDecryptionView extends HorizontalLayout {
             // Check if all required files are uploaded
             if (!isEncryptedFileUploaded || !isIvFileUploaded || !isSaltFileUploaded || password.getValue().isEmpty()) {
                 // Show a notification for missing files
-                Notify.notify("Please upload all required files", 3000, "warning");
+                Notify.notify("Please upload all required files and enter your password", 3000, "error");
                 return;
             }
 

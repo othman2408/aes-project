@@ -106,6 +106,8 @@ public class FileEncryptionView extends HorizontalLayout {
         // Create the key size options
         Select<Integer> keySize = new Select<>();
         keySize.setItems(128, 192, 256);
+        // add bit to the end of the item
+        keySize.setItemLabelGenerator(item -> item + " bit");
         keySize.setValue(128);
         keySize.getStyle().set("width", "100%");
         keySize.setLabel("Key Size");
@@ -238,7 +240,7 @@ public class FileEncryptionView extends HorizontalLayout {
                     Div downloadLinksContainer = new Div();
 
                     // Create the download links header with an icon
-                    H5 downloadLinksHeader = new H5("Download Links:");
+                    H5 downloadLinksHeader = new H5("Download Encrypted Files: ");
                     downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
 
                     // Style the download links container
@@ -261,6 +263,9 @@ public class FileEncryptionView extends HorizontalLayout {
 
                     // Clear the password field and the upload component
                     password.clear();
+
+                    // Notify the user that the file was encrypted successfully
+                    Notify.notify("File encrypted successfully", 3000, "success");
 
                 } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
                         | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException
