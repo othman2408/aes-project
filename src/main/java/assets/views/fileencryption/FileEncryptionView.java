@@ -138,7 +138,6 @@ public class FileEncryptionView extends HorizontalLayout {
         // Example for MemoryBuffer
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload singleFileUpload = new Upload(memoryBuffer);
-        singleFileUpload.setAcceptedFileTypes("text/plain");
 
         // Style the upload component
         singleFileUpload.setWidthFull();
