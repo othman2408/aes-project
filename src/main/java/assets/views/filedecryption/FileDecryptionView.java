@@ -1,6 +1,7 @@
 package assets.views.filedecryption;
 
 import assets.AES.AESFileEncDec;
+import assets.views.sharedComponents.Notify;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.*;
@@ -17,6 +18,7 @@ import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
+import org.aspectj.weaver.ast.Not;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -212,7 +214,8 @@ public class FileDecryptionView extends HorizontalLayout {
         decryptButton.addClickListener(e -> {
             // Check if all required files are uploaded
             if (!isEncryptedFileUploaded || !isIvFileUploaded || !isSaltFileUploaded || password.getValue().isEmpty()) {
-                notify("Please upload all required files and enter your password", 3000, "warning");
+                // Show a notification for missing files
+                Notify.notify("Please upload all required files", 3000, "warning");
                 return;
             }
 
@@ -243,7 +246,7 @@ public class FileDecryptionView extends HorizontalLayout {
                 password.clear();
 
                 // Show a notification
-                notify("File decrypted successfully", 3000, "success");
+                Notify.notify("File decrypted successfully", 3000, "success");
 
             } catch (NoSuchAlgorithmException |
                      InvalidKeySpecException | InvalidAlgorithmParameterException
@@ -251,7 +254,7 @@ public class FileDecryptionView extends HorizontalLayout {
                      | IllegalBlockSizeException | BadPaddingException
                      | InvalidKeyException | IOException ex) {
                 // Show a notification for decryption errors
-                notify("Error decrypting the file. Please check your password and try again.", 3000, "error");
+                Notify.notify("Error while decrypting the file", 3000, "error");
                 throw new RuntimeException(ex);
             } finally {
                 // Reset the flags for the next decryption attempt
@@ -286,31 +289,6 @@ public class FileDecryptionView extends HorizontalLayout {
         return link;
     }
 
-    /**
-     * Shows a notification message.
-     *
-     * @param msg      The message to show.
-     * @param duration The duration of the notification.
-     * @param type     The type of the notification.
-     */
-    public void notify(String msg, int duration, String type) {
-        Notification notification = new Notification(msg, duration, Notification.Position.TOP_CENTER);
-
-        // Check for valid theme variants
-        if ("success".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        } else if ("error".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        } else if ("warning".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-        } else if ("primary".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-        } else {
-            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
-        }
-
-        notification.open();
-    }
 
     private Upload generateUploadComponent(MemoryBuffer buffer, Span label) {
         Upload upload = new Upload(buffer);

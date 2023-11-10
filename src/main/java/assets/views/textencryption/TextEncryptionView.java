@@ -1,11 +1,10 @@
 package assets.views.textencryption;
 
 import assets.AES.AESTextEncryption;
+import assets.views.sharedComponents.Notify;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.*;
-import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -207,7 +206,7 @@ public class TextEncryptionView extends HorizontalLayout {
             if (isValidInput(plainTextArea)) {
                 encryptText(plainTextArea);
             } else {
-                notify("Please enter a text to encrypt", 4000, "LUMO_WARNING");
+                Notify.notify("Please enter a valid input", 4000, "LUMO_ERROR");
             }
         });
 
@@ -237,37 +236,11 @@ public class TextEncryptionView extends HorizontalLayout {
                     keySize.getValue(),
                     encryptionMode.getValue());
             result.setValue(encryptedText);
-            notify("Text encrypted successfully", 4000, "LUMO_SUCCESS");
+            Notify.notify("Text encrypted successfully", 4000, "LUMO_SUCCESS");
         } catch (Exception exception) {
-            notify(exception.getMessage(), 4000, "LUMO_ERROR");
+            Notify.notify(exception.getMessage(), 4000, "LUMO_ERROR");
             exception.getCause();
         }
-    }
-
-    /**
-     * Shows a notification message.
-     * 
-     * @param msg      The message to show.
-     * @param duration The duration of the notification.
-     * @param type     The type of the notification.
-     */
-    public void notify(String msg, int duration, String type) {
-        Notification notification = new Notification(msg, duration, Notification.Position.TOP_CENTER);
-
-        // Check for valid theme variants
-        if ("success".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        } else if ("error".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
-        } else if ("warning".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_WARNING);
-        } else if ("primary".equalsIgnoreCase(type)) {
-            notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
-        } else {
-            notification.addThemeVariants(NotificationVariant.LUMO_CONTRAST);
-        }
-
-        notification.open();
     }
 
     /**

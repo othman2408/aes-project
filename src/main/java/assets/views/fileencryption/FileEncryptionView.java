@@ -1,6 +1,7 @@
 package assets.views.fileencryption;
 
 import assets.AES.AESFileEncDec;
+import assets.views.sharedComponents.Notify;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
@@ -8,7 +9,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.select.Select;
@@ -231,7 +231,7 @@ public class FileEncryptionView extends HorizontalLayout {
                     exception.printStackTrace();
                 }
             } else {
-                Notification.show("Please select a file to encrypt", 3000, Notification.Position.MIDDLE);
+                Notify.notify("Please upload a file to encrypt", 3000, "error");
             }
         });
 
