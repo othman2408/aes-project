@@ -2,12 +2,9 @@ package assets.views.fileencryption;
 
 import assets.AES.AESFileEncDec;
 import assets.views.sharedComponents.Notify;
-import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.Uses;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -98,6 +95,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("width", "100%")
                 .set("flex-direction", "row")
                 .set("gap", ".5rem");
+
 
         // Key size options
         Select<Integer> keySize = new Select<>();
@@ -220,7 +218,31 @@ public class FileEncryptionView extends HorizontalLayout {
                     downloadIvLink = downloadLink(ivFileName);
                     downloadSaltLink = downloadLink(saltFileName);
 
-                    mainContainer.add(downloadLink, downloadIvLink, downloadSaltLink);
+                    //Download links container
+                    Div downloadLinksContainer = new Div();
+
+                    //Header with icon
+                    H5 downloadLinksHeader = new H5("Download Links:");
+                    downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
+
+                    //Style the download links container
+                    downloadLinksContainer.getStyle().set("flex-direction", "column")
+                            .set("display", "flex")
+                            .set("gap", ".5rem")
+                            .set("width", "-webkit-fill-available")
+                            .set("margin-top", "1rem")
+                            .set("margin-bottom", "1rem")
+                            .set("background", "#e8ebef")
+                            .set("padding", "1rem")
+                            .set("border-radius", "5px")
+                            .set("user-select", "none");
+
+
+
+
+                    downloadLinksContainer.add(downloadLinksHeader,downloadLink, downloadIvLink, downloadSaltLink);
+
+                    mainContainer.add(downloadLinksContainer);
 
                     // Clear password field and the upload component
                     password.clear();
@@ -250,14 +272,9 @@ public class FileEncryptionView extends HorizontalLayout {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        }), "Download File");
-        link.getStyle().set("text-decoration", "none")
-                .set("background-color", "#4CAF50")
-                .set("color", "white")
-                .set("padding", "10px 20px")
-                .set("border", "1px solid #4CAF50")
-                .set("border-radius", "5px")
-                .set("cursor", "pointer");
+        }), "- " + fileName);
+
+
         link.getElement().setAttribute("download", true);
         return link;
     }

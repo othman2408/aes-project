@@ -43,6 +43,8 @@ public class TextEncryptionView extends HorizontalLayout {
         setJustifyContentMode(JustifyContentMode.CENTER);
         setWidthFull();
         setHeightFull();
+        setMinHeight("100%");
+        getStyle().set("margin-top", "3rem");
     }
 
     /**
@@ -55,6 +57,8 @@ public class TextEncryptionView extends HorizontalLayout {
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
         mainContainer.getStyle().set("padding", "0");
+        mainContainer.getStyle().set("padding", "1rem 0").set("max-height", "100vh");
+
 
         mainContainer.add(createTitlesContainer(), createActionContainer(), createResultContainer());
 
@@ -73,8 +77,9 @@ public class TextEncryptionView extends HorizontalLayout {
         subtitle.getStyle()
                 .set("font-weight", "normal")
                 .set("font-size", "1.3rem")
-                .set("margin-top", ".5rem")
-                .set("text-align", "center");
+                .set("padding-top", ".8rem")
+                .set("text-align", "center")
+                .set("margin-bottom", "2rem");
 
         titlesContainer.add(title, subtitle);
         return titlesContainer;
@@ -94,7 +99,6 @@ public class TextEncryptionView extends HorizontalLayout {
                 .set("flex-direction", "column")
                 .set("align-items", "center")
                 .set("justify-content", "center")
-                .set("padding", "3rem 0rem 0rem 0rem")
                 .set("gap", ".5rem");
 
         TextArea plainTextArea = createPlainTextTextArea();
@@ -260,7 +264,7 @@ public class TextEncryptionView extends HorizontalLayout {
         result.addClassName("text-encryption-view-text-area-1");
         result.setLabel("Encrypted Text");
         result.getStyle().set("min-height", "8rem");
-        result.getStyle().set("flex", "1");
+        result.getStyle().set("flex", "1").set("padding-bottom", "2rem");
 
         resultContainer.add(result);
         return resultContainer;
