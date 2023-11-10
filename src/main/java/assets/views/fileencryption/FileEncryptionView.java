@@ -35,27 +35,34 @@ import java.security.spec.InvalidKeySpecException;
 @Uses(Icon.class)
 public class FileEncryptionView extends HorizontalLayout {
 
+    // Download links for the encrypted file, IV, and salt
     private Anchor downloadLink;
     private Anchor downloadIvLink;
     private Anchor downloadSaltLink;
+
+    // Byte arrays to store the encrypted data, salt, and IV
     private byte[] encryptedData;
     private byte[] salt;
     private byte[] iv;
 
+    /**
+     * Constructor for the FileEncryptionView class.
+     * Sets up the UI components for the file encryption view.
+     */
     public FileEncryptionView() {
-        // Place the mainContainer in the center of the screen
+        // Set the alignment and size of the main container
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         setWidthFull();
         setHeightFull();
 
-        // Main Container
+        // Create the main container
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
         mainContainer.getStyle().set("gap", "1rem");
 
-        // Title Container
+        // Create the title container
         Div titlesContainer = new Div();
         H1 title = new H1("File Encryption");
         H3 subtitle = new H3("Upload a file to encrypt it");
@@ -67,7 +74,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("margin-bottom", "2rem");
         titlesContainer.add(title, subtitle);
 
-        // Action Container
+        // Create the upload container
         Div uploadContainer = new Div();
         uploadContainer.getStyle()
                 .set("width", "100%")
@@ -79,7 +86,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("padding", "2rem 0rem 0rem 0rem")
                 .set("gap", ".5rem");
 
-        // Password Field
+        // Create the password field
         PasswordField password = new PasswordField();
         password.setLabel("Password");
         password.setPlaceholder("Enter your password");
@@ -88,7 +95,7 @@ public class FileEncryptionView extends HorizontalLayout {
         password.setRequiredIndicatorVisible(true);
         password.getStyle().set("width", "100%");
 
-        // Key and mode options Container
+        // Create the key and mode options container
         Div keyModeContainer = new Div();
         keyModeContainer.getStyle()
                 .set("display", "flex")
@@ -96,8 +103,7 @@ public class FileEncryptionView extends HorizontalLayout {
                 .set("flex-direction", "row")
                 .set("gap", ".5rem");
 
-
-        // Key size options
+        // Create the key size options
         Select<Integer> keySize = new Select<>();
         keySize.setItems(128, 192, 256);
         keySize.setValue(128);
@@ -105,7 +111,7 @@ public class FileEncryptionView extends HorizontalLayout {
         keySize.setLabel("Key Size");
         keySize.setHelperText("Select the key size");
 
-        // Encryption mode options
+        // Create the encryption mode options
         Select<String> encryptionMode = new Select<>();
         encryptionMode.setItems("CBC", "ECB");
         encryptionMode.setValue("CBC");
@@ -113,10 +119,14 @@ public class FileEncryptionView extends HorizontalLayout {
         encryptionMode.setLabel("Encryption Mode");
         encryptionMode.setHelperText("Select the encryption mode");
 
-        // Key and mode options Container
+        // Add the key size and encryption mode options to the key and mode options
+        // container
         keyModeContainer.add(keySize, encryptionMode);
 
-        // Create a mutable container to store the uploaded file data and name
+        /**
+         * The FileDataContainer class is a Java class that holds the data and file name
+         * of a file.
+         */
         class FileDataContainer {
             private byte[] data;
             private String fileName;
@@ -141,7 +151,7 @@ public class FileEncryptionView extends HorizontalLayout {
         // Create an instance of the mutable container
         FileDataContainer fileDataContainer = new FileDataContainer();
 
-        // File Upload component
+        // Create the file upload component
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload singleFileUpload = new Upload(memoryBuffer);
 
@@ -159,26 +169,32 @@ public class FileEncryptionView extends HorizontalLayout {
             fileDataContainer.setFileName(event.getFileName());
         });
 
-        // Encrypt button
+        // Create the encrypt button
         Button encryptButton = new Button("Encrypt");
         encryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
                 .set("cursor", "pointer");
 
-        // Button action
+        // Add a click listener to the encrypt button
         encryptButton.addClickListener(e -> {
             byte[] uploadedFileData = fileDataContainer.getData();
             String uploadedFileName = fileDataContainer.getFileName();
 
             if (uploadedFileName != null && uploadedFileData != null) {
                 try {
+                    // Set the encryption algorithm based on the selected encryption mode
                     String encryptionAlgorithm = "AES/" + encryptionMode.getValue() + "/PKCS5Padding";
+
+                    // Generate a salt and key from the password and key size
                     salt = AESFileEncDec.generateSalt();
                     SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), salt, keySize.getValue());
+
+                    // Generate an IV for the encryption
                     IvParameterSpec ivSpec = AESFileEncDec.generateIv();
 
                     // Update the IV byte array
                     iv = ivSpec.getIV();
 
+                    // Encrypt the uploaded file data
                     encryptedData = AESFileEncDec.encryptFile(encryptionAlgorithm, key, ivSpec, uploadedFileData);
 
                     // Remove the old download links if they exist
@@ -218,14 +234,14 @@ public class FileEncryptionView extends HorizontalLayout {
                     downloadIvLink = downloadLink(ivFileName);
                     downloadSaltLink = downloadLink(saltFileName);
 
-                    //Download links container
+                    // Create the download links container
                     Div downloadLinksContainer = new Div();
 
-                    //Header with icon
+                    // Create the download links header with an icon
                     H5 downloadLinksHeader = new H5("Download Links:");
                     downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
 
-                    //Style the download links container
+                    // Style the download links container
                     downloadLinksContainer.getStyle().set("flex-direction", "column")
                             .set("display", "flex")
                             .set("gap", ".5rem")
@@ -237,19 +253,18 @@ public class FileEncryptionView extends HorizontalLayout {
                             .set("border-radius", "5px")
                             .set("user-select", "none");
 
+                    // Add the download links header and links to the download links container
+                    downloadLinksContainer.add(downloadLinksHeader, downloadLink, downloadIvLink, downloadSaltLink);
 
-
-
-                    downloadLinksContainer.add(downloadLinksHeader,downloadLink, downloadIvLink, downloadSaltLink);
-
+                    // Add the download links container to the main container
                     mainContainer.add(downloadLinksContainer);
 
-                    // Clear password field and the upload component
+                    // Clear the password field and the upload component
                     password.clear();
 
-                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException |
-                         InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException |
-                         InvalidKeySpecException exception) {
+                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
+                        | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException
+                        | InvalidKeySpecException exception) {
                     exception.printStackTrace();
                 }
             } else {
@@ -257,14 +272,19 @@ public class FileEncryptionView extends HorizontalLayout {
             }
         });
 
-
-        // Add components to the mainContainer
+        // Add the components to the main container
         mainContainer.add(titlesContainer, singleFileUpload, password, keyModeContainer, encryptButton);
 
-        // Add the mainContainer to the screen
+        // Add the main container to the screen
         add(mainContainer);
     }
 
+    /**
+     * Creates a download link for a file with the given file name.
+     *
+     * @param fileName The name of the file to create a download link for.
+     * @return An Anchor component that can be clicked to download the file.
+     */
     private Anchor downloadLink(String fileName) {
         Anchor link = new Anchor(new StreamResource(fileName, () -> {
             try {
@@ -273,7 +293,6 @@ public class FileEncryptionView extends HorizontalLayout {
                 throw new RuntimeException(e);
             }
         }), "- " + fileName);
-
 
         link.getElement().setAttribute("download", true);
         return link;
