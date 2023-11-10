@@ -133,9 +133,10 @@ public class FileEncryptionView extends HorizontalLayout {
             }
         }
 
+        // Create an instance of the mutable container
         FileDataContainer fileDataContainer = new FileDataContainer();
 
-        // Example for MemoryBuffer
+        // File Upload component
         MemoryBuffer memoryBuffer = new MemoryBuffer();
         Upload singleFileUpload = new Upload(memoryBuffer);
 
@@ -210,13 +211,13 @@ public class FileEncryptionView extends HorizontalLayout {
 
     private Anchor downloadLink(String encryptedFileName) {
         Anchor link = new Anchor(new StreamResource(encryptedFileName, () -> new ByteArrayInputStream(encryptedData)), "Download Encrypted File");
-        link.getStyle().set("text-decoration", "none");
-        link.getStyle().set("background-color", "#4CAF50");
-        link.getStyle().set("color", "white");
-        link.getStyle().set("padding", "10px 20px");
-        link.getStyle().set("border", "1px solid #4CAF50");
-        link.getStyle().set("border-radius", "5px");
-        link.getStyle().set("cursor", "pointer");
+        link.getStyle().set("text-decoration", "none")
+                .set("background-color", "#4CAF50")
+                .set("color", "white")
+                .set("padding", "10px 20px")
+                .set("border", "1px solid #4CAF50")
+                .set("border-radius", "5px")
+                .set("cursor", "pointer");
         link.getElement().setAttribute("download", true);
         return link;
     }
