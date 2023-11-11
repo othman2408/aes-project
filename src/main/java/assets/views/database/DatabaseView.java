@@ -34,14 +34,14 @@ public class DatabaseView extends Composite<VerticalLayout> {
         H3 h3 = new H3("Personal Information Form");
         // Form
         FormLayout formLayout2Col = new FormLayout();
-        TextField textField = new TextField("First Name");
-        TextField textField2 = new TextField("Last Name");
-        EmailField emailField = new EmailField("Email");
-        PasswordField passwordField = new PasswordField("Password field");
-        passwordField.setWidth("min-content");
-        DatePicker datePicker = new DatePicker("Birthday");
-        TextField textField3 = new TextField("Phone Number");
-        TextField textField4 = new TextField("Occupation");
+        TextField fname = new TextField("First Name");
+        TextField lname = new TextField("Last Name");
+        EmailField email = new EmailField("Email");
+        PasswordField pass = new PasswordField("Password field");
+        pass.setWidth("min-content");
+        DatePicker date = new DatePicker("Birthday");
+        TextField phone = new TextField("Phone Number");
+        TextField job = new TextField("Occupation");
 
         // Buttons
         HorizontalLayout layoutRow = new HorizontalLayout();
@@ -65,7 +65,7 @@ public class DatabaseView extends Composite<VerticalLayout> {
         buttonPrimary.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         getContent().add(layout);
         layout.add(h3, formLayout2Col, layoutRow);
-        formLayout2Col.add(textField, textField2, emailField, passwordField, datePicker, textField3, textField4);
+        formLayout2Col.add(fname, lname, email, pass, date, phone, job);
         layoutRow.add(buttonPrimary, buttonSecondary);
 
     }
