@@ -13,6 +13,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 import assets.views.about.AboutView;
+import assets.views.database.DatabaseView;
 import assets.views.filedecryption.FileDecryptionView;
 import assets.views.fileencryption.FileEncryptionView;
 import assets.views.textdecryption.TextDecryptionView;
@@ -60,6 +61,7 @@ public class MainLayout extends AppLayout {
                 LineAwesomeIcon.TEXT_WIDTH_SOLID.create()));
         nav.addItem(new SideNavItem("File Encryption", FileEncryptionView.class, LineAwesomeIcon.FILE_CODE.create()));
         nav.addItem(new SideNavItem("File Decryption", FileDecryptionView.class, LineAwesomeIcon.FILE_CODE.create()));
+        nav.addItem(new SideNavItem("Database", DatabaseView.class, LineAwesomeIcon.DATABASE_SOLID.create()));
         nav.addItem(new SideNavItem("About", AboutView.class, LineAwesomeIcon.README.create()));
 
         return nav;
