@@ -4,6 +4,7 @@
 .settings
 .project
 .classpath
+src/main/java/assets/DB/dev.env
 
 *.iml
 .DS_Store
