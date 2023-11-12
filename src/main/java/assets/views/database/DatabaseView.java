@@ -21,6 +21,10 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
 
+import java.sql.SQLException;
+
+import static assets.DB.DBConnector.handleRegistration;
+
 @PageTitle("data-base")
 @Route(value = "db", layout = MainLayout.class)
 @Uses(Icon.class)
@@ -35,17 +39,26 @@ public class DatabaseView extends Composite<VerticalLayout> {
         H3 h3 = new H3("Register Form | Database View");
 
         // Form
-        FormLayout formLayout2Col = new FormLayout();
+        FormLayout form = new FormLayout();
         TextField fname = new TextField("First Name");
+        fname.setRequired(true);
         TextField lname = new TextField("Last Name");
+        lname.setRequired(true);
         EmailField email = new EmailField("Email");
+        email.setRequired(true);
         PasswordField pass = new PasswordField("Password field");
+        pass.setRequired(true);
         pass.setWidth("min-content");
         DatePicker date = new DatePicker("Birthday");
+        date.setRequired(true);
         TextField phone = new TextField("Phone Number");
+        phone.setRequired(true);
         TextField job = new TextField("Occupation");
-        formLayout2Col.add(fname, lname, email, pass, date, phone, job);
-        formLayout2Col.setWidth("100%");
+        job.setRequired(true);
+
+        //Append all fields to the form
+        form.add(fname, lname, email, pass, date, phone, job);
+        form.setWidth("100%");
 
         // Buttons
         HorizontalLayout layoutRow = new HorizontalLayout();
@@ -59,7 +72,7 @@ public class DatabaseView extends Composite<VerticalLayout> {
         layoutRow.getStyle().set("flex-grow", "1");
         layoutRow.add(buttonPrimary, buttonSecondary);
 
-        // Layout
+        // Layout setup
         getContent().setWidth("100%");
         getContent().getStyle().set("flex-grow", "1");
         getContent().setJustifyContentMode(JustifyContentMode.START);
@@ -68,18 +81,47 @@ public class DatabaseView extends Composite<VerticalLayout> {
         layout.setMaxWidth("800px");
         layout.setHeight("min-content");
         h3.setWidth("100%");
-        layout.add(h3, formLayout2Col, layoutRow);
+        layout.add(h3, form, layoutRow);
         getContent().add(layout);
 
-        handleSubmit(buttonPrimary);
+        handleSubmit(buttonPrimary, form);
     }
 
-    private boolean handleSubmit(Button submitButton) {
+    private boolean handleSubmit(Button submitButton, FormLayout form ) {
         submitButton.addClickListener(e -> {
-            Notification.show("Submitted!", 3000, Notification.Position.TOP_CENTER);
+            // Get values from the form
+            String fname = ((TextField) form.getChildren().toArray()[0]).getValue();
+            String lname = ((TextField) form.getChildren().toArray()[1]).getValue();
+            String email = ((EmailField) form.getChildren().toArray()[2]).getValue();
+            String pass = ((PasswordField) form.getChildren().toArray()[3]).getValue();
+            String date = ((DatePicker) form.getChildren().toArray()[4]).getValue().toString().toString();
+            String phone = ((TextField) form.getChildren().toArray()[5]).getValue();
+            String job = ((TextField) form.getChildren().toArray()[6]).getValue();
+
+            Notification.show(fname);
+            Notification.show(lname);
+            Notification.show(email);
+            Notification.show(pass);
+            Notification.show(date);
+            Notification.show(phone);
+            Notification.show(job);
+
+
+            try {
+
+                boolean register = handleRegistration(fname, lname, email, pass, date, phone, job);
+                if (register) {
+                    Notification.show("Registration Successful!", 3000, Notification.Position.TOP_CENTER);
+                } else {
+                    Notification.show("Registration Failed!", 3000, Notification.Position.TOP_CENTER);
+                }
+            } catch (SQLException throwable) {
+                throwable.getCause();
+            }
+
         });
 
-        return true;
+        return false;
     }
 
 

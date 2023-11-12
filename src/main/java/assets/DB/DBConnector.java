@@ -32,12 +32,14 @@ public class DBConnector {
         return rs.next();
     }
 
-    public static boolean handleRegister(String fname, String lname, String email, String pass, String date,
-            String phone, String position) throws SQLException {
+    public static boolean handleRegistration(String fname, String lname, String email, String pass, String date,
+                                             String phone, String position) throws SQLException {
 
         try {
-            String query = "INSERT INTO person (fname, lname, email, password, birthdate, phoneNO, position) VALUES ('" + fname + "', '"
-                    + lname + "', '" + email + "', '" + pass + "', '" + date + "', '" + phone + "', '" + position + "')";
+            String query = "INSERT INTO person (fname, lname, email, password, birthdate, phoneNO, position) VALUES ('"
+                    + fname + "', '"
+                    + lname + "', '" + email + "', '" + pass + "', '" + date + "', '" + phone + "', '" + position
+                    + "')";
 
             DBConnector db = new DBConnector();
             db.stmt.executeUpdate(query);
@@ -54,12 +56,12 @@ public class DBConnector {
         // boolean found = searchForPerson(2100);
         // System.out.println(found);
 
-//        boolean Register1 = handleRegister("othman", "alibrahim", "othman@gmail.com", "123456", "1999-12-12",
-//                "0599999999", "student");
+        // boolean Register1 = handleRegister("othman", "alibrahim", "othman@gmail.com",
+        // "123456", "1999-12-12",
+        // "0599999999", "student");
 
-
-
-        System.out.println(handleRegister("ali", "murad", "ali@gmail.com", "336622", "2003-08-17", "12236262", "student"));
+        System.out.println(
+                handleRegistration("ali", "murad", "ali@gmail.com", "336622", "2003-08-17", "12236262", "student"));
 
     }
 }
