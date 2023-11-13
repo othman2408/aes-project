@@ -7,7 +7,7 @@ CREATE TABLE person
     email     VARCHAR(50),
     password  VARCHAR(50),
     birthdate VARCHAR(50),
-    phoneNO   VARCHAR(11),
+    phoneNO   VARCHAR(20),
     position  VARCHAR(20)
 );
 
