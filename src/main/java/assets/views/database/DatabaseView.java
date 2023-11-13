@@ -61,6 +61,7 @@ public class DatabaseView extends Composite<VerticalLayout> {
         VerticalLayout content = new VerticalLayout();
         content.setAlignItems(Alignment.CENTER);
         content.setJustifyContentMode(JustifyContentMode.CENTER);
+        content.getStyle().set("background-color", "rgb(243 245 247)").set("border-radius", "5px");
         getContent().add(content);
 
         // Set the default tab
@@ -69,8 +70,6 @@ public class DatabaseView extends Composite<VerticalLayout> {
 
         // Form Layout
         VerticalLayout form = createRegistrationFormLayout();
-
-
 
         // on click on tab from the tabs
         tabs.addSelectedChangeListener(event -> {
