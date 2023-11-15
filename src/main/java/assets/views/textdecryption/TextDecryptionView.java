@@ -1,6 +1,7 @@
 package assets.views.textdecryption;
 
-import assets.AES.AESTextDecryption;
+import assets.AES.AESTextEncDec;
+import assets.views.MainLayout;
 import assets.views.sharedComponents.Notify;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
@@ -13,7 +14,6 @@ import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import assets.views.MainLayout;
 
 /**
  * This class represents the UI view for text decryption & functionality.
@@ -247,16 +247,26 @@ public class TextDecryptionView extends HorizontalLayout {
      */
     private void decryptText(TextArea encryptedTextArea) {
         try {
-            String decryptedText = AESTextDecryption.decrypt(
-                    encryptedTextArea.getValue(),
-                    passwordField.getValue(),
-                    keySize.getValue(),
-                    encryptionMode.getValue());
+
+            // Validate
+            if(passwordField.isEmpty()) {
+                Notify.notify("Please enter a valid password", 4000, "error");
+                return;
+            }
+
+            // Get the IV and salt from LocalStorage
+            AESTextEncDec.ivString = AESTextEncDec.getIVString();
+            AESTextEncDec.saltString = AESTextEncDec.getSaltString();
+
+            // Perform decryption
+            String decryptedText = AESTextEncDec.decrypt(encryptedTextArea.getValue(), passwordField.getValue(),
+                    keySize.getValue(), encryptionMode.getValue());
             result.setValue(decryptedText);
-            Notify.notify("Text decrypted successfully", 4000, "LUMO_SUCCESS");
+
+            // Success notification
+            Notify.notify("Text decrypted successfully", 4000, "success");
         } catch (Exception exception) {
-            Notify.notify(exception.getMessage(), 4000, "LUMO_ERROR");
-            exception.getCause();
+            Notify.notify(exception.getMessage(), 4000, "error");
         }
     }
 

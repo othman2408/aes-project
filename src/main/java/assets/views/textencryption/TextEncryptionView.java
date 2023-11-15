@@ -1,19 +1,22 @@
 package assets.views.textencryption;
 
-import assets.AES.AESTextEncryption;
+import assets.AES.AESTextEncDec;
+import assets.views.MainLayout;
 import assets.views.sharedComponents.Notify;
 import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.page.WebStorage;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
-import assets.views.MainLayout;
 
 /**
  * This class represents the UI view for text encryption & functionality.
@@ -234,16 +237,34 @@ public class TextEncryptionView extends HorizontalLayout {
      */
     private void encryptText(TextArea plainTextArea) {
         try {
-            String encryptedText = AESTextEncryption.encrypt(
-                    plainTextArea.getValue(),
-                    passwordField.getValue(),
-                    keySize.getValue(),
-                    encryptionMode.getValue());
+
+            // Validation
+            if (passwordField.isEmpty()) {
+                Notify.notify("Please enter a secret key", 4000, "error");
+                return;
+            }
+
+            // Encrypt the plain text input
+            // Ignore IV if ECB selected
+
+            String encryptedText = AESTextEncDec.encrypt(plainTextArea.getValue(), passwordField.getValue(), keySize.getValue(), encryptionMode.getValue());
             result.setValue(encryptedText);
-            Notify.notify("Text encrypted successfully", 4000, "LUMO_SUCCESS");
+
+            // Store IV and Salt
+            String ivString  = AESTextEncDec.getIVString();
+            String saltString = AESTextEncDec.getSaltString();
+
+            // Save them in local storage
+            WebStorage.setItem("ivString", ivString);
+            WebStorage.setItem("saltString", saltString);
+
+
+            // Notify the user that the encryption was successful
+            Notify.notify("Text encrypted successfully", 4000, "success");
+
         } catch (Exception exception) {
-            Notify.notify(exception.getMessage(), 4000, "LUMO_ERROR");
-            exception.getCause();
+            Notify.notify(exception.getMessage(),  4000, "error");
+
         }
     }
 
