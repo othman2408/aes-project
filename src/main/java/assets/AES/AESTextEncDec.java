@@ -73,9 +73,17 @@ public class AESTextEncDec {
         // Derive a key from the password with the specified key size
         salt = generateRandomSalt();
         saltString = Base64.getEncoder().encodeToString(salt);
-        ivBytes = generateRandomIV();
-        ivString = Base64.getEncoder().encodeToString(ivBytes);
-        secretKey = deriveKey(password, ivBytes, salt, keySize);
+
+        // Generate a random IV only if using CBC mode
+        if (encryptionMode.equalsIgnoreCase("CBC")) {
+            ivBytes = generateRandomIV();
+            ivString = Base64.getEncoder().encodeToString(ivBytes);
+            secretKey = deriveKey(password, ivBytes, salt, keySize);
+        } else {
+            ivBytes = null;
+            ivString = null;
+            secretKey = deriveKey(password, null, salt, keySize);
+        }
 
         Cipher cipher = Cipher.getInstance("AES/" + encryptionMode + "/PKCS5Padding");
         IvParameterSpec ivParameterSpec = (ivBytes != null) ? new IvParameterSpec(ivBytes) : null;
@@ -88,6 +96,7 @@ public class AESTextEncDec {
         byte[] encryptedBytes = cipher.doFinal(plainText.getBytes());
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
+
 
     public static String decrypt(String encryptedText, String password, int keySize, String encryptionMode)
             throws Exception {
