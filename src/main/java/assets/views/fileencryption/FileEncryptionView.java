@@ -183,23 +183,20 @@ public class FileEncryptionView extends HorizontalLayout {
 
             if (uploadedFileName != null && uploadedFileData != null) {
                 try {
-                    // Set the encryption algorithm based on the selected encryption mode
-                    String encryptionAlgorithm = "AES/" + encryptionMode.getValue() + "/PKCS5Padding";
+                    String selectedMode = encryptionMode.getValue();
+                    String encryptionAlgorithm = "AES/" + selectedMode + "/PKCS5Padding";
 
-                    // Generate a salt and key from the password and key size
                     salt = AESFileEncDec.generateSalt();
                     SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), salt, keySize.getValue());
 
-                    // Generate an IV for the encryption
-                    IvParameterSpec ivSpec = AESFileEncDec.generateIv();
+                    IvParameterSpec ivSpec = null;
+                    if (selectedMode.equals("CBC")) {
+                        ivSpec = AESFileEncDec.generateIv();
+                        iv = ivSpec.getIV();
+                    }
 
-                    // Update the IV byte array
-                    iv = ivSpec.getIV();
-
-                    // Encrypt the uploaded file data
                     encryptedData = AESFileEncDec.encryptFile(encryptionAlgorithm, key, ivSpec, uploadedFileData);
 
-                    // Remove the old download links if they exist
                     if (downloadLink != null) {
                         mainContainer.remove(downloadLink);
                     }
@@ -210,40 +207,37 @@ public class FileEncryptionView extends HorizontalLayout {
                         mainContainer.remove(downloadSaltLink);
                     }
 
-                    // Save the encrypted data to a file
                     String encryptedFileName = uploadedFileName + ".enc";
                     File encryptedFile = new File(encryptedFileName);
                     try (FileOutputStream output = new FileOutputStream(encryptedFile)) {
                         output.write(encryptedData);
                     }
 
-                    // Save the IV to a file
-                    String ivFileName = uploadedFileName + "_iv.enc";
-                    File ivFile = new File(ivFileName);
-                    try (FileOutputStream ivOutput = new FileOutputStream(ivFile)) {
-                        ivOutput.write(iv);
+                    if (selectedMode.equals("CBC")) {
+                        String ivFileName = uploadedFileName + "_iv.enc";
+                        File ivFile = new File(ivFileName);
+                        try (FileOutputStream ivOutput = new FileOutputStream(ivFile)) {
+                            ivOutput.write(iv);
+                        }
+
+                        downloadIvLink = downloadLink(ivFileName);
+                        mainContainer.add(downloadIvLink);
                     }
 
-                    // Save the salt to a file
                     String saltFileName = uploadedFileName + "_salt.enc";
                     File saltFile = new File(saltFileName);
                     try (FileOutputStream saltOutput = new FileOutputStream(saltFile)) {
                         saltOutput.write(salt);
                     }
 
-                    // Create and add the new download links
                     downloadLink = downloadLink(encryptedFileName);
-                    downloadIvLink = downloadLink(ivFileName);
                     downloadSaltLink = downloadLink(saltFileName);
 
-                    // Create the download links container
                     Div downloadLinksContainer = new Div();
 
-                    // Create the download links header with an icon
                     H5 downloadLinksHeader = new H5("Download Encrypted Files: ");
                     downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
 
-                    // Style the download links container
                     downloadLinksContainer.getStyle().set("flex-direction", "column")
                             .set("display", "flex")
                             .set("gap", ".5rem")
@@ -255,27 +249,24 @@ public class FileEncryptionView extends HorizontalLayout {
                             .set("border-radius", "5px")
                             .set("user-select", "none");
 
-                    // Add the download links header and links to the download links container
-                    downloadLinksContainer.add(downloadLinksHeader, downloadLink, downloadIvLink, downloadSaltLink);
+                    downloadLinksContainer.add(downloadLinksHeader, downloadLink, downloadSaltLink);
 
-                    // Add the download links container to the main container
                     mainContainer.add(downloadLinksContainer);
 
-                    // Clear the password field and the upload component
                     password.clear();
 
-                    // Notify the user that the file was encrypted successfully
                     Notify.notify("File encrypted successfully", 3000, "success");
 
                 } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
-                        | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException
-                        | InvalidKeySpecException exception) {
+                         | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException
+                         | InvalidKeySpecException exception) {
                     exception.printStackTrace();
                 }
             } else {
                 Notify.notify("Please upload a file to encrypt", 3000, "error");
             }
         });
+
 
         // Add the components to the main container
         mainContainer.add(titlesContainer, singleFileUpload, password, keyModeContainer, encryptButton);

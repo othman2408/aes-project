@@ -17,10 +17,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import assets.views.MainLayout;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
+import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import java.io.*;
 import java.security.InvalidAlgorithmParameterException;
@@ -40,31 +37,28 @@ import java.security.spec.InvalidKeySpecException;
 @Uses(Icon.class)
 public class FileDecryptionView extends HorizontalLayout {
 
-    // Private fields
     private Anchor downloadLink;
     private byte[] decryptedData;
     private boolean isEncryptedFileUploaded = false;
     private boolean isIvFileUploaded = false;
     private boolean isSaltFileUploaded = false;
+    private boolean isIvRequired = true;
 
     /**
      * Constructs a new instance of the FileDecryptionView class.
      * Initializes the UI components and sets up event listeners.
      */
     public FileDecryptionView() {
-        // Place the mainContainer in the center of the screen
         setAlignItems(Alignment.CENTER);
         setJustifyContentMode(JustifyContentMode.CENTER);
         setWidthFull();
         setHeightFull();
 
-        // Main Container
         VerticalLayout mainContainer = new VerticalLayout();
         mainContainer.setAlignItems(Alignment.CENTER);
         mainContainer.setWidth("50%");
         mainContainer.getStyle().set("gap", "1rem");
 
-        // Title Container
         Div titlesContainer = new Div();
         H1 title = new H1("File Decryption");
         title.getStyle().set("text-align", "center");
@@ -76,7 +70,6 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("margin-bottom", "2rem");
         titlesContainer.add(title, subtitle);
 
-        // Action Container
         Div uploadContainer = new Div();
         uploadContainer.getStyle()
                 .set("width", "100%")
@@ -88,19 +81,15 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("padding", "2rem 0rem 0rem 0rem")
                 .set("gap", ".5rem");
 
-        // Encrypted File Upload component
         MemoryBuffer encryptedFileBuffer = new MemoryBuffer();
         Upload encryptedFileUpload = generateUploadComponent(encryptedFileBuffer, new Span("Upload Encrypted File"));
 
-        // IV File Upload component
         MemoryBuffer ivBuffer = new MemoryBuffer();
         Upload ivUpload = generateUploadComponent(ivBuffer, new Span("Upload Initialization Vector (IV) File"));
 
-        // Salt File Upload component
         MemoryBuffer saltBuffer = new MemoryBuffer();
         Upload saltUpload = generateUploadComponent(saltBuffer, new Span("Upload Salt File"));
 
-        // Password Field
         PasswordField password = new PasswordField();
         password.setLabel("Password");
         password.setPlaceholder("Enter your password");
@@ -109,7 +98,6 @@ public class FileDecryptionView extends HorizontalLayout {
         password.setRequiredIndicatorVisible(true);
         password.getStyle().set("width", "100%");
 
-        // Key and mode options Container
         Div keyModeContainer = new Div();
         keyModeContainer.getStyle()
                 .set("display", "flex")
@@ -117,17 +105,14 @@ public class FileDecryptionView extends HorizontalLayout {
                 .set("flex-direction", "row")
                 .set("gap", ".5rem");
 
-        // Key size options
         Select<Integer> keySize = new Select<>();
         keySize.setItems(128, 192, 256);
-        // add bit to the end of the item
         keySize.setItemLabelGenerator(item -> item + " bit");
         keySize.setValue(128);
         keySize.getStyle().set("width", "100%");
         keySize.setLabel("Key Size");
         keySize.setHelperText("Select the key size");
 
-        // Decryption mode options
         Select<String> decryptionMode = new Select<>();
         decryptionMode.setItems("CBC", "ECB");
         decryptionMode.setValue("CBC");
@@ -135,10 +120,13 @@ public class FileDecryptionView extends HorizontalLayout {
         decryptionMode.setLabel("Decryption Mode");
         decryptionMode.setHelperText("Select the decryption mode");
 
-        // Key and mode options Container
         keyModeContainer.add(keySize, decryptionMode);
 
-        // Create a mutable container to store the uploaded file data and name
+        decryptionMode.addValueChangeListener(e -> {
+            isIvRequired = e.getValue().equals("CBC");
+            ivUpload.setVisible(isIvRequired);
+        });
+
         class FileDataContainer {
             private byte[] encryptedData;
             private byte[] iv;
@@ -178,12 +166,9 @@ public class FileDecryptionView extends HorizontalLayout {
             }
         }
 
-        // Create an instance of the mutable container
         FileDataContainer fileDataContainer = new FileDataContainer();
 
-        // Add a succeeded listener to handle file uploads for encrypted file
         encryptedFileUpload.addSucceededListener(event -> {
-            // Store the uploaded file data and name in the container
             try {
                 fileDataContainer.setEncryptedData(encryptedFileBuffer.getInputStream().readAllBytes());
                 isEncryptedFileUploaded = true;
@@ -193,9 +178,7 @@ public class FileDecryptionView extends HorizontalLayout {
             fileDataContainer.setFileName(event.getFileName());
         });
 
-        // Add a succeeded listener to handle IV file uploads
         ivUpload.addSucceededListener(event -> {
-            // Store the uploaded IV data
             try {
                 fileDataContainer.setIv(ivBuffer.getInputStream().readAllBytes());
                 isIvFileUploaded = true;
@@ -204,9 +187,7 @@ public class FileDecryptionView extends HorizontalLayout {
             }
         });
 
-        // Add a succeeded listener to handle salt file uploads
         saltUpload.addSucceededListener(event -> {
-            // Store the uploaded salt data
             try {
                 fileDataContainer.setSalt(saltBuffer.getInputStream().readAllBytes());
                 isSaltFileUploaded = true;
@@ -215,35 +196,34 @@ public class FileDecryptionView extends HorizontalLayout {
             }
         });
 
-        // Decrypt button
         Button decryptButton = new Button("Decrypt");
         decryptButton.getStyle().set("background-color", "#1E90FF").set("color", "white").set("width", "100%")
                 .set("cursor", "pointer");
 
-        // Button action
         decryptButton.addClickListener(e -> {
-            // Check if all required files are uploaded
-            if (!isEncryptedFileUploaded || !isIvFileUploaded || !isSaltFileUploaded || password.getValue().isEmpty()) {
-                // Show a notification for missing files
+            if (!isEncryptedFileUploaded || (!isIvFileUploaded && isIvRequired) || !isSaltFileUploaded || password.getValue().isEmpty()) {
                 Notify.notify("Please upload all required files and enter your password", 3000, "error");
                 return;
             }
 
             try {
-                String encryptionAlgorithm = "AES/" + decryptionMode.getValue() + "/PKCS5Padding";
+                String decryptionAlgorithm = "AES/" + decryptionMode.getValue() + "/PKCS5Padding";
+
                 SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), fileDataContainer.getSalt(),
                         keySize.getValue());
-                IvParameterSpec iv = new IvParameterSpec(fileDataContainer.getIv());
 
-                decryptedData = AESFileEncDec.decryptFile(encryptionAlgorithm, key, iv,
+                IvParameterSpec iv = null;
+                if (isIvRequired) {
+                    iv = new IvParameterSpec(fileDataContainer.getIv());
+                }
+
+                decryptedData = AESFileEncDec.decryptFile(decryptionAlgorithm, key, iv,
                         fileDataContainer.getEncryptedData());
 
-                // Remove the old download link if it exists
                 if (downloadLink != null) {
                     mainContainer.remove(downloadLink);
                 }
 
-                // Save the decrypted data to a file
                 String decryptedFileName = fileDataContainer.getFileName().substring(0,
                         fileDataContainer.getFileName().length() - 4);
                 File decryptedFile = new File(decryptedFileName);
@@ -251,42 +231,35 @@ public class FileDecryptionView extends HorizontalLayout {
                 fileOutputStream.write(decryptedData);
                 fileOutputStream.close();
 
-                // Create and add the new download link
                 downloadLink = downloadLink(decryptedFileName);
                 mainContainer.add(downloadLink);
 
-                // Clear the password field
                 password.clear();
 
-                // Show a notification
                 Notify.notify("File decrypted successfully", 3000, "success");
 
             } catch (NoSuchAlgorithmException | InvalidKeySpecException | InvalidAlgorithmParameterException
-                    | NoSuchPaddingException
-                    | IllegalBlockSizeException | BadPaddingException
-                    | InvalidKeyException | IOException ex) {
-                // Show a notification for decryption errors
+                     | NoSuchPaddingException
+                     | IllegalBlockSizeException | BadPaddingException
+                     | InvalidKeyException | IOException ex) {
                 Notify.notify("Error while decrypting the file", 3000, "error");
                 throw new RuntimeException(ex);
             } finally {
-                // Reset the flags for the next decryption attempt
                 isEncryptedFileUploaded = false;
                 isIvFileUploaded = false;
                 isSaltFileUploaded = false;
             }
         });
 
-        // Add components to the mainContainer
         mainContainer.add(titlesContainer, encryptedFileUpload, ivUpload, saltUpload, password, keyModeContainer,
                 decryptButton);
 
-        // Add the mainContainer to the screen
         add(mainContainer);
     }
 
     /**
      * Sets the style for the upload component.
-     * 
+     *
      * @param upload The upload component to set the style for.
      */
     private void setUploadStyle(Upload upload) {
@@ -296,7 +269,7 @@ public class FileDecryptionView extends HorizontalLayout {
 
     /**
      * Generates an anchor element for downloading the decrypted file.
-     * 
+     *
      * @param decryptedFileName The name of the decrypted file.
      * @return The anchor element for downloading the decrypted file.
      */
@@ -316,7 +289,7 @@ public class FileDecryptionView extends HorizontalLayout {
 
     /**
      * Generates an upload component with the specified buffer and label.
-     * 
+     *
      * @param buffer The buffer to use for the upload component.
      * @param label  The label to use for the upload component.
      * @return The generated upload component.
@@ -328,5 +301,4 @@ public class FileDecryptionView extends HorizontalLayout {
         setUploadStyle(upload);
         return upload;
     }
-
 }
