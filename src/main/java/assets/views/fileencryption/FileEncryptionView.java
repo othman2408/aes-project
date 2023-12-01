@@ -36,6 +36,7 @@ import java.security.spec.InvalidKeySpecException;
 public class FileEncryptionView extends HorizontalLayout {
 
     // Download links for the encrypted file, IV, and salt
+    private Div downloadLinksContainer;
     private Anchor downloadLink;
     private Anchor downloadIvLink;
     private Anchor downloadSaltLink;
@@ -184,36 +185,24 @@ public class FileEncryptionView extends HorizontalLayout {
             if (uploadedFileName != null && uploadedFileData != null) {
                 try {
                     String selectedMode = encryptionMode.getValue();
+                    int selectedKeySize = keySize.getValue();
                     String encryptionAlgorithm = "AES/" + selectedMode + "/PKCS5Padding";
 
+                    // Remove existing download links and containers if they exist
+                    if (downloadLinksContainer != null && mainContainer.getChildren().anyMatch(component -> component.equals(downloadLinksContainer))) {
+                        mainContainer.remove(downloadLinksContainer);
+                        downloadLinksContainer.getElement().removeFromParent();
+                        downloadLinksContainer = null;
+                    }
+
                     salt = AESFileEncDec.generateSalt();
-                    SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), salt, keySize.getValue());
+                    SecretKey key = AESFileEncDec.getKeyFromPassword(password.getValue(), salt, selectedKeySize);
 
                     IvParameterSpec ivSpec = null;
                     if (selectedMode.equals("CBC")) {
                         ivSpec = AESFileEncDec.generateIv();
                         iv = ivSpec.getIV();
-                    }
 
-                    encryptedData = AESFileEncDec.encryptFile(encryptionAlgorithm, key, ivSpec, uploadedFileData);
-
-                    if (downloadLink != null) {
-                        mainContainer.remove(downloadLink);
-                    }
-                    if (downloadIvLink != null) {
-                        mainContainer.remove(downloadIvLink);
-                    }
-                    if (downloadSaltLink != null) {
-                        mainContainer.remove(downloadSaltLink);
-                    }
-
-                    String encryptedFileName = uploadedFileName + ".enc";
-                    File encryptedFile = new File(encryptedFileName);
-                    try (FileOutputStream output = new FileOutputStream(encryptedFile)) {
-                        output.write(encryptedData);
-                    }
-
-                    if (selectedMode.equals("CBC")) {
                         String ivFileName = uploadedFileName + "_iv.enc";
                         File ivFile = new File(ivFileName);
                         try (FileOutputStream ivOutput = new FileOutputStream(ivFile)) {
@@ -221,7 +210,13 @@ public class FileEncryptionView extends HorizontalLayout {
                         }
 
                         downloadIvLink = downloadLink(ivFileName);
-                        mainContainer.add(downloadIvLink);
+                    }
+
+                    String encryptedFileName = uploadedFileName + ".enc";
+                    File encryptedFile = new File(encryptedFileName);
+                    encryptedData = AESFileEncDec.encryptFile(encryptionAlgorithm, key, ivSpec, uploadedFileData);
+                    try (FileOutputStream output = new FileOutputStream(encryptedFile)) {
+                        output.write(encryptedData);
                     }
 
                     String saltFileName = uploadedFileName + "_salt.enc";
@@ -233,39 +228,26 @@ public class FileEncryptionView extends HorizontalLayout {
                     downloadLink = downloadLink(encryptedFileName);
                     downloadSaltLink = downloadLink(saltFileName);
 
-                    Div downloadLinksContainer = new Div();
-
-                    H5 downloadLinksHeader = new H5("Download Encrypted Files: ");
-                    downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
-
-                    downloadLinksContainer.getStyle().set("flex-direction", "column")
-                            .set("display", "flex")
-                            .set("gap", ".5rem")
-                            .set("width", "-webkit-fill-available")
-                            .set("margin-top", "1rem")
-                            .set("margin-bottom", "1rem")
-                            .set("background", "#e8ebef")
-                            .set("padding", "1rem")
-                            .set("border-radius", "5px")
-                            .set("user-select", "none");
-
-                    downloadLinksContainer.add(downloadLinksHeader, downloadLink, downloadSaltLink);
-
+                    // Create and add the new download links container
+                    downloadLinksContainer = DownloadLinksContainer(downloadLink, downloadSaltLink);
+                    if (selectedMode.equals("CBC")) {
+                        downloadLinksContainer.add(downloadIvLink); // Add the IV link to the container
+                    }
                     mainContainer.add(downloadLinksContainer);
-
-                    password.clear();
 
                     Notify.notify("File encrypted successfully", 3000, "success");
 
-                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException
-                         | InvalidAlgorithmParameterException | BadPaddingException | IllegalBlockSizeException
-                         | InvalidKeySpecException exception) {
+                } catch (IOException | NoSuchPaddingException | NoSuchAlgorithmException |
+                         InvalidKeyException | InvalidAlgorithmParameterException |
+                         BadPaddingException | IllegalBlockSizeException | InvalidKeySpecException exception) {
                     exception.printStackTrace();
                 }
             } else {
                 Notify.notify("Please upload a file to encrypt", 3000, "error");
             }
         });
+
+
 
 
         // Add the components to the main container
@@ -293,4 +275,60 @@ public class FileEncryptionView extends HorizontalLayout {
         link.getElement().setAttribute("download", true);
         return link;
     }
+
+    private Div DownloadLinksContainer(Anchor downloadLink, Anchor downloadSaltLink) {
+        Div downloadLinksContainer = new Div();
+
+        H5 downloadLinksHeader = new H5("Download Encrypted Files: ");
+        downloadLinksHeader.getStyle().set("margin-bottom", ".5rem").set("text-decoration", "underline");
+
+        downloadLinksContainer.getStyle().set("flex-direction", "column")
+                .set("display", "flex")
+                .set("gap", ".5rem")
+                .set("width", "-webkit-fill-available")
+                .set("margin-top", "1rem")
+                .set("margin-bottom", "1rem")
+                .set("background", "#e8ebef")
+                .set("padding", "1rem")
+                .set("border-radius", "5px")
+                .set("user-select", "none");
+
+        downloadLinksContainer.add(downloadLinksHeader, downloadLink, downloadSaltLink);
+
+        return downloadLinksContainer;
+
+    }
+
+    private void removeGeneratedFiles(String uploadedFileName, Div downloadLinksContainer, VerticalLayout mainContainer) {
+        if (downloadLink != null && mainContainer.getChildren().anyMatch(component -> component.equals(downloadLink))) {
+            mainContainer.remove(downloadLink);
+            downloadLink.getElement().removeFromParent();
+            downloadLink = null;
+        }
+        if (downloadIvLink != null && mainContainer.getChildren().anyMatch(component -> component.equals(downloadIvLink))) {
+            mainContainer.remove(downloadIvLink);
+            downloadIvLink.getElement().removeFromParent();
+            downloadIvLink = null;
+        }
+        if (downloadSaltLink != null && mainContainer.getChildren().anyMatch(component -> component.equals(downloadSaltLink))) {
+            mainContainer.remove(downloadSaltLink);
+            downloadSaltLink.getElement().removeFromParent();
+            downloadSaltLink = null;
+        }
+
+        // Remove previously generated files
+        removeFileIfExists(uploadedFileName + ".enc");
+        removeFileIfExists(uploadedFileName + "_iv.enc");
+        removeFileIfExists(uploadedFileName + "_salt.enc");
+    }
+
+    private void removeFileIfExists(String fileName) {
+        File file = new File(fileName);
+        if (file.exists()) {
+            file.delete(); // Delete the file from the file system
+        }
+    }
+
+
+
 }
